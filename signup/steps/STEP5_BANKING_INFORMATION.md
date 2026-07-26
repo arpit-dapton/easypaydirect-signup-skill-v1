@@ -5,21 +5,24 @@ description: Step 5 Banking Information - Bank account details and payment routi
 
 # STEP 5: Banking Information
 
-Fifth step of the 7-step signup form. Collects bank account and routing information for payment processing.
+Fifth step of the 6-step signup form. Collects bank account and routing information for payment processing.
 
 ---
 
 ## Fields
 
+> ℹ️ **`country` is a Step 1 field** (see [STEP1_ACCOUNT_INFORMATION.md](STEP1_ACCOUNT_INFORMATION.md)). Step 5 does **NOT** render a country dropdown. The Canada-only conditionals below read the persisted Step 1 `country` value (`$company->country`, where US=`1`, Canada=`2`). Do **not** add a `#country` `<select>` or a `$('#country').on('change')` handler on this step — evaluate the persisted country **once on page load**.
+
+> ℹ️ **No account-type field.** Bank account type is **not** collected in the UI. The client sends `bank_account_type` programmatically (defaults to `1`); do **not** render a Checking/Savings dropdown or textbox.
+
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| institution_number | text | Conditional | Show if country="CA" (Canada), 3 digits |
-| customer_pay_currency | radio | Conditional | Show if country="CA", Options: USD, CAD |
-| routing_number | text | Yes | Label varies by country |
+| institution_number | text | Conditional | Show if Step 1 `country="2"` (Canada), 3 digits |
+| customer_pay_currency | radio | Conditional | Show if Step 1 `country="2"` (Canada), Options: USD, CAD |
+| routing_number | text | Yes | Label varies by Step 1 `country` |
 | account_number | text | Yes | Alphanumeric |
-| account_type | select | No | Static: Checking, Savings |
-| currently_processing | select | No | Options: Yes(1), No(0) |
-| processor_name | text | Conditional | Show if currently_processing=1, max 300 chars |
+| current_processing | select | No | Options: Yes(1), No(0) |
+| processor_name | text | Conditional | Show if current_processing=1, max 300 chars |
 
 ---
 
@@ -42,9 +45,21 @@ Fifth step of the 7-step signup form. Collects bank account and routing informat
 
 ⚠️ **All conditional fields MUST be hidden on page load** (`style="display: none;"`).
 
-- **institution_number**: Show if country="CA"
-- **customer_pay_currency**: Show if country="CA"
-- **processor_name**: Show if currently_processing=1
+- **institution_number**: Show if Step 1 `country="2"` (Canada) — read persisted value, no `#country` dropdown on this step
+- **customer_pay_currency**: Show if Step 1 `country="2"` (Canada)
+- **processor_name**: Show if current_processing=1
+
+**Country-based visibility** — evaluate the persisted Step 1 country once on load (server-side `$company->country`, or inject it into the page). Example:
+```javascript
+// country comes from Step 1 (persisted), NOT a Step 5 <select>
+var companyCountry = "{{ $company->country }}"; // "1" = US, "2" = Canada
+if (companyCountry === "2") { // Canada
+    $('#institution_number_wrapper').show();
+    $('#institution_number').prop('required', true);
+    $('.canadian_currency_div').show();
+    $('input[name="customer_pay_currency"]').prop('required', true);
+}
+```
 
 ---
 
@@ -106,7 +121,7 @@ Response: { next_step_url, message }
 
 ## Field Summary
 
-**Total Fields**: 10  
+**Total Fields**: 9 (country is a Step 1 field; no account-type UI field)  
 **Required Fields**: 5  
 **Conditional Fields**: 3
 

@@ -20,7 +20,7 @@ Second step of the 6-step signup form. Collects company business details, addres
 | legal_name | text | Yes | Max 60 chars. **Pre-fill from Step 1 `name` field** |
 | name | text | Yes | DBA name, max 60 chars. **Pre-fill from Step 1 `name` field** |
 | industry_type | select | Yes | API: `/api/partner/industry-types` |
-| annual_sales | text | No | Numeric, variant-specific |
+| industry_type_other | text | Conditional | Show if industry_type="other", max 255 chars |
 | customer_service_telephone_number | tel | Yes | Use intl-tel-input |
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
 | business_formed | date | Yes | YYYY-MM-DD, use date picker |
@@ -409,8 +409,22 @@ Physical Address:
   ```
 
 **federal_tax_id Label** (Changes based on country):
-- **If country="1" (US)**: Label = "Federal Tax ID"
-- **If country≠"1"**: Label = "Federal Tax ID (or Corporation Tax Number equivalent)"
+- **If country="US"**: Label = "Federal Tax ID"
+- **If country≠"US"**: Label = "Federal Tax ID (or Corporation Tax Number equivalent)"
+
+### Industry Type Conditionals
+
+**industry_type_other Field** (Show ONLY if industry_type="other"):
+- **Conditional Logic**:
+  ```javascript
+  IF industry_type = "other":
+    SHOW industry_type_other field
+    MAKE industry_type_other REQUIRED
+  ELSE:
+    HIDE industry_type_other field
+    CLEAR value
+  ```
+- **Field Details**: Text input, max 255 chars, placeholder "Please specify your industry"
 
 ---
 
@@ -422,18 +436,18 @@ The `federal_tax_id` input (`id="txn_id"`, `name="federal_tax_id"`) is a **forma
 
 | Country | Cleave config | Result |
 |---------|---------------|--------|
-| US / Canada / Puerto Rico (`1`, `2`, `3`) | `{ numericOnly: true, blocks: [3, 2, 4], delimiters: ['-', '-'] }` | `123-45-6789` |
+| US / Canada / Puerto Rico | `{ numericOnly: true, blocks: [3, 2, 4], delimiters: ['-', '-'] }` | `123-45-6789` |
 | All other countries | `{ numericOnly: true, blocks: [2, 7], delimiters: ['-'] }` | `12-3456789` |
 
 **Enable / disable rules** (evaluated on load and whenever `country` or `business_organized` changes):
-- **Sole Proprietorship** (`business_organized = "5"`): **disable** the field, remove `required`, clear the value. Show the hint: *"Sole proprietors: You will be asked for your SSN when setting up your account."*
-- **Canada** (`country = "2"`): **disable** the field, remove `required`, clear the value.
+- **Sole Proprietorship** (`business_organized = "Sole-Proprietorship"`): **disable** the field, remove `required`, clear the value. Show the hint: *"Sole proprietors: You will be asked for your SSN when setting up your account."*
+- **Canada** (`country = "Canada"`): **disable** the field, remove `required`, clear the value.
 - **Any other valid country + business type**: enable, mark `required`, and (re)apply the Cleave mask for that country.
 - Always **destroy the previous Cleave instance** before creating a new one (re-formatting on country change), else masks stack.
 
 **Validation** (`jquery-validate` custom method):
-- Minimum **9 digits** for US/Canada/PR (`country` ∈ {1,2,3}).
-- Minimum **11 digits** when also Sole Proprietorship (`business_organized = "5"`).
+- Minimum **9 digits** for US/Canada/PR.
+- Minimum **11 digits** when also Sole Proprietorship (`business_organized = "Sole-Proprietorship"`).
 - Message: *"Please enter at least 9 digits"*.
 
 **Reference implementation**:
@@ -551,9 +565,9 @@ Response: { next_step_url, message }
 
 ## Field Summary
 
-**Total Fields**: 26 (country + business_state moved to Step 1)  
+**Total Fields**: 26 (country + business_state + annual_sales moved to Step 1)  
 **Required Fields**: 21  
-**Conditional Fields**: 5  
+**Conditional Fields**: 6 (business_register_number, industry_type_other, physical address fields, subscription_frequency, subscription_frequency_other)  
 **Google Maps Autocomplete**: 2 (legal + physical)
 
 ---

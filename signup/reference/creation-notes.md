@@ -125,7 +125,6 @@ Summary and usage guide for the complete skill package.
 
 1. **Plaid Persona Connection** - Step 4 identity verification section
 2. **Dynamic Processor Fields** - Conditional complex form modal
-3. **Signature Step** - Step 7 document signing
 
 ---
 
@@ -324,7 +323,7 @@ Include form validation on submit."
 ✅ **Context Efficient** - 62KB total, optimized for single AI pass
 ✅ **Machine Readable** - JSON specification for programmatic generation
 ✅ **Well Documented** - Multiple formats (markdown, JSON, quick reference)
-✅ **Excluded Blockers** - Removed Plaid, dynamic processor fields, signatures
+✅ **Excluded Blockers** - Removed Plaid, dynamic processor fields
 ✅ **Production Ready** - Ready to hand to any AI for form generation
 ✅ **Thinner Main Skill** - Focused on form structure, no API logic
 

@@ -5,7 +5,7 @@ description: Step 3 Product Information - Fulfillment details, transaction metho
 
 # STEP 3: Product Information
 
-Third step of the 7-step signup form. Collects product fulfillment details, transaction entry methods, and service descriptions.
+Third step of the 6-step signup form. Collects product fulfillment details, transaction entry methods, and service descriptions.
 
 ---
 

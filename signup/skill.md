@@ -1,11 +1,11 @@
 ---
 name: signup-form-creation
-description: Create a complete 7-step merchant signup form with all fields, validations, and integrations
+description: Create a complete 6-step merchant signup form with all fields, validations, and integrations
 ---
 
 # Merchant Signup Form Specification
 
-Production-ready specification for building the complete 7-step signup form.
+Production-ready specification for building the complete 6-step signup form.
 
 ---
 
@@ -14,12 +14,11 @@ Production-ready specification for building the complete 7-step signup form.
 | Step | Title | File | Fields | Features |
 |------|-------|------|--------|----------|
 | 1 | Account Information | [STEP1_ACCOUNT_INFORMATION.md](steps/STEP1_ACCOUNT_INFORMATION.md) | 9 | Phone formatting, country/state selection |
-| 2 | Company Information | [STEP2_COMPANY_INFORMATION.md](steps/STEP2_COMPANY_INFORMATION.md) | 28 | Google Maps autocomplete (legal + physical), revenue model with nested conditionals |
+| 2 | Company Information | [STEP2_COMPANY_INFORMATION.md](steps/STEP2_COMPANY_INFORMATION.md) | 26 | Google Maps autocomplete (legal + physical), revenue model with nested conditionals (country/state collected in Step 1) |
 | 3 | Product Information | [STEP3_PRODUCT_INFORMATION.md](steps/STEP3_PRODUCT_INFORMATION.md) | 13 | Fulfillment details, transaction slider (multiples of 5) |
 | 4 | Owner Information | [STEP4_OWNER_INFORMATION.md](steps/STEP4_OWNER_INFORMATION.md) | 45+ | Primary contact, Owner 1 & conditional Owner 2, Google Maps autocomplete (2), driver's license, financial history |
 | 5 | Banking Information | [STEP5_BANKING_INFORMATION.md](steps/STEP5_BANKING_INFORMATION.md) | 10 | Routing validation, country-specific fields |
 | 6 | Final Details | [STEP6_FINAL_DETAILS.md](steps/STEP6_FINAL_DETAILS.md) | 11 | Interest selection, terms acceptance |
-| 7 | Signature | - | - | Display only (no submission) |
 
 ---
 
@@ -93,8 +92,15 @@ localStorage.removeItem('signup_uuid');
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@22.0.2/build/js/intl-tel-input.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@22.0.2/build/css/intlTelInput.css">
 
-<!-- Step 2, 4 -->
-<script src="https://maps.google.com/maps/api/js?key={GOOGLE_API_KEY}&libraries=places"></script>
+<!-- Step 2, 4 — Google Maps Places (address autocomplete). REQUIRED, load synchronously (no async/defer) BEFORE the autocomplete init script. Use the real key from config, NOT a literal placeholder. -->
+<script src="https://maps.google.com/maps/api/js?key={{ config('app.google_map_key') }}&libraries=places" type="text/javascript"></script>
+
+<!-- Step 2, 4 — bootstrap-select: country selectpicker the autocomplete populates via .selectpicker('val'|'refresh') -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
+<!-- Step 2 — Cleave.js: Federal Tax ID input masking -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
 
 <!-- Step 3 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/ion.rangeSlider.min.js"></script>
@@ -167,7 +173,7 @@ GET /signup/step/1/{uuid}
 
 ## Field Summary
 
-**Total Fields**: 116+ (9+28+13+45+10+11 across all 6 steps)  
+**Total Fields**: 116+ (11+26+13+45+10+11 across all 6 steps)  
 **Required Fields**: 70+  
 **Conditional Fields**: 40+ (multi-level dependencies)  
 **Google Maps Autocomplete Instances**: 4  

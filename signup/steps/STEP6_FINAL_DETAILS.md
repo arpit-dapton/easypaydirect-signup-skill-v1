@@ -5,7 +5,7 @@ description: Step 6 Final Details - Referral sources, interests, and terms accep
 
 # STEP 6: Final Details
 
-Sixth step of the 7-step signup form. Collects referral information, interest details, and terms acceptance.
+Sixth step of the 6-step signup form. Collects referral information, interest details, and terms acceptance.
 
 ---
 
@@ -76,6 +76,121 @@ Object.entries(transactionDevices).forEach(([slug, name]) => {
 const savedValue = "iPhone/Android";
 $('#transaction_device').val(savedValue);
 ```
+
+---
+
+## Other Interests Capital - Grouped Checkboxes
+
+**Field**: `other_interests_capital`  
+**Type**: Checkbox array (multiple selection)  
+**Required**: No  
+**API Endpoint**: `GET /api/partner/interest-details`  
+**Headers**: `Authorization: {user.security_key}`
+
+**Response Format** (Grouped by Interest Group):
+```json
+{
+  "success": true,
+  "message": "Interest list",
+  "data": [
+    {
+      "group_name": "Capital Investment",
+      "interests": [
+        { "id": 1, "name": "Equipment Financing" },
+        { "id": 2, "name": "Working Capital" },
+        { "id": 3, "name": "Growth Capital" }
+      ]
+    },
+    {
+      "group_name": "Debt Management",
+      "interests": [
+        { "id": 4, "name": "Debt Consolidation" },
+        { "id": 5, "name": "Refinancing" }
+      ]
+    }
+  ]
+}
+```
+
+**HTML Implementation** (Grouped Checkboxes):
+```html
+<div class="interests-section">
+  <label>What are your capital interests?</label>
+  
+  <!-- Dynamically render groups from API response -->
+  <div class="interest-group">
+    <h4>Capital Investment</h4>
+    <div class="form-check">
+      <input type="checkbox" name="other_interests_capital" value="1" id="interest_1" class="form-check-input">
+      <label class="form-check-label" for="interest_1">Equipment Financing</label>
+    </div>
+    <div class="form-check">
+      <input type="checkbox" name="other_interests_capital" value="2" id="interest_2" class="form-check-input">
+      <label class="form-check-label" for="interest_2">Working Capital</label>
+    </div>
+    <!-- More interests... -->
+  </div>
+  
+  <div class="interest-group">
+    <h4>Debt Management</h4>
+    <div class="form-check">
+      <input type="checkbox" name="other_interests_capital" value="4" id="interest_4" class="form-check-input">
+      <label class="form-check-label" for="interest_4">Debt Consolidation</label>
+    </div>
+    <!-- More interests... -->
+  </div>
+</div>
+```
+
+**JavaScript Implementation** (Render from API):
+```javascript
+// Fetch interests from API
+$.ajax({
+    url: '/api/partner/interest-details',
+    type: 'GET',
+    headers: {
+        'Authorization': userApiKey,
+        'Content-Type': 'application/json'
+    },
+    success: function(response) {
+        const container = $('.interests-section');
+        
+        response.data.forEach((group, index) => {
+            // Create group heading
+            const groupDiv = $(`<div class="interest-group"><h4>${group.group_name}</h4></div>`);
+            
+            // Add checkboxes for each interest
+            group.interests.forEach((interest) => {
+                const checkboxId = `interest_${interest.id}`;
+                const checkboxHtml = `
+                    <div class="form-check">
+                        <input type="checkbox" name="other_interests_capital" 
+                               value="${interest.id}" id="${checkboxId}" 
+                               class="form-check-input">
+                        <label class="form-check-label" for="${checkboxId}">
+                            ${interest.name}
+                        </label>
+                    </div>
+                `;
+                groupDiv.append(checkboxHtml);
+            });
+            
+            container.append(groupDiv);
+        });
+    }
+});
+
+// On form submission, collect selected interests
+const selectedInterests = $('input[name="other_interests_capital"]:checked')
+    .map(function() { return $(this).val(); })
+    .get();
+// selectedInterests = [1, 4, 5, ...] (array of interest IDs)
+```
+
+**Form Submission**:
+- Submit as array: `other_interests_capital[]` with multiple checkbox values
+- Example: `other_interests_capital=1&other_interests_capital=2&other_interests_capital=4`
+- Backend receives as array of interest IDs
 
 ---
 

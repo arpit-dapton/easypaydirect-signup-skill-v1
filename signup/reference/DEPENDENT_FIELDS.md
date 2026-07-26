@@ -428,32 +428,33 @@ $('input[name="owner[1][bankruptcy_discharged]"]').on('change', function() {
 
 ### Country → Institution Number (Canada Only)
 
-**Condition**: When country = "CA" (Canada)
+**Condition**: When the **Step 1** `country` = `"2"` (Canada)
+
+> ⚠️ **Country is NOT collected on Step 5.** There is no `#country` `<select>` on this step, so do **not** bind `$('#country').on('change', …)`. Read the persisted Step 1 country value once on page load and toggle visibility. Binding to a non-existent `#country` element is why generators wrongly add a country dropdown here.
 
 **Action**: Show institution_number field
 
 ```javascript
-// Implementation
-$('#country').on('change', function() {
-    if (this.value === 'CA') {  // Canada
-        $('.institution-number-section').show();
-        $('#institution_number').prop('required', true);
-        
-        $('.currency-section').show();
-        $('input[name="customer_pay_currency"]').prop('required', true);
-    } else {
-        $('.institution-number-section').hide();
-        $('#institution_number').prop('required', false);
-        
-        $('.currency-section').hide();
-        $('input[name="customer_pay_currency"]').prop('required', false);
-    }
-});
+// Implementation — country comes from Step 1 (persisted), evaluated once on load
+var companyCountry = "{{ $company->country }}"; // "1" = US, "2" = Canada
+if (companyCountry === '2') {  // Canada
+    $('.institution-number-section').show();
+    $('#institution_number').prop('required', true);
+
+    $('.currency-section').show();
+    $('input[name="customer_pay_currency"]').prop('required', true);
+} else {
+    $('.institution-number-section').hide();
+    $('#institution_number').prop('required', false);
+
+    $('.currency-section').hide();
+    $('input[name="customer_pay_currency"]').prop('required', false);
+}
 ```
 
 ### Currency Selection (Canada Only)
 
-**Condition**: When country = "CA" (Canada)
+**Condition**: When the **Step 1** `country` = `"2"` (Canada)
 
 **Action**: Show customer_pay_currency radio
 
@@ -473,13 +474,13 @@ $('#country').on('change', function() {
 
 ### Currently Processing → Processor Name
 
-**Condition**: When currently_processing = 1 (Yes)
+**Condition**: When current_processing = 1 (Yes)
 
 **Action**: Show processor_name field
 
 ```javascript
 // Implementation
-$('input[name="currently_processing"]').on('change', function() {
+$('input[name="current_processing"]').on('change', function() {
     if (this.value === '1') {
         $('.processor-name-section').show();
         $('#processor_name').prop('required', true);
@@ -576,9 +577,9 @@ if ($('#accept_terms').val() !== '1') {
 | 4 | ownership_percentage[1] | show/hide | owner_2_section | value<51 |
 | 4 | filed_bankruptcy[1] | show/hide | bankruptcy_discharged[1] | value=1 |
 | 4 | bankruptcy_discharged[1] | show/hide | bankruptcy_date[1] | value=1 |
-| 5 | country | show/hide | institution_number | value="CA" |
-| 5 | country | show/hide | customer_pay_currency | value="CA" |
-| 5 | currently_processing | show/hide | processor_name | value=1 |
+| 5 | Step 1 country (persisted, no dropdown) | show/hide | institution_number | country="2" (Canada) |
+| 5 | Step 1 country (persisted, no dropdown) | show/hide | customer_pay_currency | country="2" (Canada) |
+| 5 | current_processing | show/hide | processor_name | value=1 |
 | 6 | howdidyouhear | show/hide | howdidyouhear_other | value="Other" or "Friend" |
 | 6 | bad_experience | show/hide | bad_experience_provider | value=1 |
 

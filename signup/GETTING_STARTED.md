@@ -9,7 +9,7 @@
 ### Day 1: Understanding the Requirements
 
 1. **Read** `skill.md` Overview section (10 min)
-   - Understand form structure: 7 steps, 78+ fields
+   - Understand form structure: 6 steps, 78+ fields
    - Review form overview table
 
 2. **Read** `skill.md` Step 1-2 sections (20 min)
@@ -58,7 +58,7 @@
 
 1. **Verify** all functionality:
    - All 6 dropdown APIs returning data
-   - All 7 steps submitting correctly
+   - All 6 steps submitting correctly
    - All conditional fields working
    - Google Maps autocomplete functioning
    - Error handling for all status codes
@@ -79,7 +79,7 @@
 ## 📱 For Product Managers: What You Need to Know
 
 ### Features
-- **7-step progressive disclosure form** - User fills one step at a time
+- **6-step progressive disclosure form** - User fills one step at a time
 - **Google Maps address autocomplete** - Legal + physical address auto-population
 - **Multi-library integration** - Phone formatting, sliders, date pickers
 - **Conditional fields** - Show/hide and nested dependencies
@@ -97,7 +97,7 @@
 - ✅ Production-ready specification
 
 ### Key Metrics
-- **Field Count**: 78+ across 7 steps
+- **Field Count**: 78+ across 6 steps
 - **Validation Rules**: 30+ business logic rules
 - **API Calls**: 3 form submission + 6 dropdown fetch = 9 total
 - **Dependent Fields**: 25+ with multi-level conditionals
@@ -117,7 +117,6 @@
 ✓ Step 4: 32+ fields - Owner info with Owner 2 conditional
 ✓ Step 5: 10 fields - Banking info
 ✓ Step 6: 11 fields - Final details
-✓ Step 7: Display only - Signature
 ```
 
 **Phase 2: Autocomplete Testing** (NEW in Step 2)
@@ -157,7 +156,7 @@
 **Phase 5: End-to-End Testing**
 ```
 ✓ Complete form with all fields
-✓ Submit all 7 steps
+✓ Submit all 6 steps
 ✓ Verify database records created
 ✓ Check email sent
 ✓ Confirm redirect to dashboard
@@ -173,7 +172,7 @@
 4. [ ] Revenue model nested conditional works (Step 2)
 5. [ ] Owner 2 appears when < 51% (Step 4)
 6. [ ] Slider snaps to 5% increments (Step 3)
-7. [ ] Form completes all 7 steps
+7. [ ] Form completes all 6 steps
 
 ---
 
@@ -365,7 +364,7 @@ Must fill name, email, phone, etc.
 
 ## 📞 Support Resources
 
-**For exact field specifications**: Read `skill.md` Step 1-7 sections
+**For exact field specifications**: Read `skill.md` Step 1-6 sections
 
 **For API details**: See `reference/api-examples.md` or `reference/DROPDOWNS_REFERENCE.md`
 

@@ -4,8 +4,7 @@
     "total_fields": 59,
     "excluded_features": [
       "plaid_persona_connection",
-      "dynamic_processor_fields",
-      "signatures_step"
+      "dynamic_processor_fields"
     ],
     "api_integration": {
       "base_domain": "https://emap.epd.dev",
@@ -1102,25 +1101,6 @@
             "required": false,
             "placeholder": "Account Holder Name",
             "max_length": 255,
-            "auto_populate": true,
-            "validation": []
-          },
-          {
-            "id": "bank_account_type",
-            "name": "Bank Account Type",
-            "type": "select",
-            "required": false,
-            "placeholder": "Please Select",
-            "options": [
-              {
-                "value": "Checking",
-                "label": "Checking"
-              },
-              {
-                "value": "Savings",
-                "label": "Savings"
-              }
-            ],
             "auto_populate": true,
             "validation": []
           },

@@ -51,7 +51,6 @@ A comprehensive, production-ready skill document for creating the merchant signu
 
 ❌ **Plaid Persona Connection** - Step 4 identity verification
 ❌ **Dynamic Processor Fields** - Conditional complex forms (Step 6 modal)
-❌ **Signature Step** - Step 7 document signing
 
 ## How to Use This Skill
 

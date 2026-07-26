@@ -5,7 +5,7 @@ description: Step 1 Account Information - First step of merchant signup with bas
 
 # STEP 1: Account Information
 
-First step of the 7-step signup form. Collects basic merchant contact and company information.
+First step of the 6-step signup form. Collects basic merchant contact and company information.
 
 ---
 
@@ -21,8 +21,44 @@ First step of the 7-step signup form. Collects basic merchant contact and compan
 | website | url | Yes | Valid URL or social media profile |
 | country | select | Yes | API: `/api/partner/countries` |
 | business_state | select | Yes | Show only if country="US", API: `/api/partner/states` |
-| annual_sales | text | No | Numeric, USD, variant-specific |
+| annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
+
+---
+
+## Country Dropdown
+
+**Field**: `country`  
+**Type**: SELECT dropdown  
+**API Endpoint**: `GET /api/partner/countries`  
+**Header**: `Authorization: {user.security_key}`
+
+**Response Format**:
+```json
+{
+  "success": true,
+  "data": [
+    { "name": "United States", "code": "US", "id": "1" },
+    { "name": "Canada", "code": "CA", "id": "2" },
+    { "name": "Mexico", "code": "MX", "id": "3" },
+    ...
+  ]
+}
+```
+
+**⚠️ CRITICAL: Use `code` (slug) as option value, NOT `id`**
+```html
+<!-- CORRECT -->
+<option value="US">United States</option>
+<option value="CA">Canada</option>
+<option value="MX">Mexico</option>
+
+<!-- WRONG - do NOT use id -->
+<option value="1">United States</option>
+<option value="2">Canada</option>
+```
+
+**Form Submission**: Submit the `code` value (e.g., "US", "CA", "MX")
 
 ---
 
@@ -47,7 +83,10 @@ Header: `Authorization: {user.security_key}`
 ```
 POST /api/v1/signup
 Headers: X-API-Key: {user.security_key}
-Payload: all Step 1 fields + step_count: 1
+Payload: 
+  country: "US" (use code/slug, not id)
+  all other Step 1 fields
+  step_count: 1
 Response: { uuid, step_count, message }
 Store UUID in localStorage for all subsequent steps
 ```
@@ -56,12 +95,13 @@ Store UUID in localStorage for all subsequent steps
 
 ## Validation
 
-- First/Last name: required
-- Email: valid format
-- Phone: valid number (intl-tel-input validates)
-- Website: valid URL
-- Country: required
-- Business State: required if country="1" (US)
+- First/Last name: required, max 60 chars
+- Email: required, valid format
+- Phone: required, valid number (intl-tel-input validates)
+- Website: required, valid URL
+- Country: required, must be valid country code (e.g., "US", "CA")
+- Business State: required if country="US" (use code, not id)
+- Annual Sales: required, numeric only (no currency symbols or commas)
 
 ---
 
@@ -113,9 +153,9 @@ for (const [field, messages] of Object.entries(response.errors)) {
 
 ## Field Summary
 
-**Total Fields**: 9  
-**Required Fields**: 8  
-**Conditional Fields**: 1 (business_state)  
+**Total Fields**: 10  
+**Required Fields**: 9 (all except promo_code)  
+**Conditionally Required**: 1 (business_state - required if country=US)  
 **Phone Fields**: 1 (intl-tel-input)
 
 ---

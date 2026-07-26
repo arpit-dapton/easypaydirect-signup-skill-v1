@@ -22,17 +22,23 @@ All dropdown values used throughout the signup form - both from API and static o
 }
 ```
 
-**CRITICAL**: Use the `id` field in conditional logic, not `code`
-- United States: id = "1"
-- Canada: id = "2"
-- Mexico: id = "3"
+**⚠️ CRITICAL: Use the `code` field (slug) as option value, NOT `id`**
+
+**Form Submission**: Use code values
+- United States: "US"
+- Canada: "CA"
+- Mexico: "MX"
+
+**Conditional Logic**: Use code values for show/hide logic
+- Show business_state if country = "US"
+- Show driver license fields if country = "US"
 
 ---
 
 ### US States (Step 1, Step 5)
 **Endpoint**: `GET /api/partner/states`  
 **Header**: `Authorization: {user.security_key}`  
-**Conditional**: Show only when country id = "1" (United States)
+**Conditional**: Show only when country = "US" (use country code/slug, not id)
 
 **Response Format**:
 ```json
@@ -260,23 +266,25 @@ country (long_name) → field id="physical_address_country" (selectpicker)
 ## Static Dropdowns (No API Call Needed)
 
 ### Job Titles (Step 4 - Both Owners)
-**Field**: `owner[1][title]` or `owner[2][title]`
+**Field**: `title[1]` or `title[2]`
 
+**Submit these slug values:**
 ```
-1: CEO
-2: CFO
-3: Chairman
-4: Co-owner
-5: Controller
-6: Director
-7: General-Manager
-8: Office-Manager
-9: Owner
-10: Partner
-11: President
-12: Treasurer
-13: Vice-President
-14: Other
+CEO
+CFO
+Chairman
+Co-owner
+Controller
+Director
+General-Manager
+Office-Manager
+Owner
+Partner
+President
+Treasurer
+Vice-President
+Other
+Employee
 ```
 
 ---
@@ -353,16 +361,6 @@ Other
 
 ---
 
-### Account Type (Step 5)
-**Field**: `account_type`
-
-```
-Checking
-Savings
-```
-
----
-
 ### Required Deposits (Step 3)
 **Field**: `leave_deposit`
 
@@ -374,7 +372,7 @@ Savings
 ---
 
 ### Currently Processing (Step 5)
-**Field**: `currently_processing`
+**Field**: `current_processing`
 
 ```
 1: Yes (conditionally show processor name)
@@ -462,7 +460,7 @@ async function loadDropdownData() {
     const select = document.querySelector('select[name="country"]');
     countries.data.forEach(country => {
         const option = document.createElement('option');
-        option.value = country.id;  // ← Use ID, not code!
+        option.value = country.code;  // ← Use CODE/slug (US, CA, MX), NOT id!
         option.textContent = country.name;
         select.appendChild(option);
     });
@@ -498,7 +496,7 @@ function prepareFormData(formData) {
     
     // Boolean 0/1 values
     formData.leave_deposit = formData.leave_deposit === '1' ? 1 : 0;
-    formData.currently_processing = formData.currently_processing === '1' ? 1 : 0;
+    formData.current_processing = formData.current_processing === '1' ? 1 : 0;
     formData.bad_experience = formData.bad_experience === '1' ? 1 : 0;
     formData.multiple_merchant_accounts = formData.multiple_merchant_accounts === '1' ? 1 : 0;
     formData.bankruptcy_discharged = formData.bankruptcy_discharged === '1' ? 1 : 0;
@@ -515,8 +513,8 @@ function prepareFormData(formData) {
 
 ```
 Step 1:
-  [ ] Country dropdown has 150+ countries
-  [ ] State dropdown shows only when country="1"
+  [ ] Country dropdown has 150+ countries (using code/slug values: US, CA, etc.)
+  [ ] State dropdown shows only when country="US"
   
 Step 2:
   [ ] Industry Type has options

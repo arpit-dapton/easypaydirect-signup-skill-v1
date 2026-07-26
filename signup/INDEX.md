@@ -1,13 +1,13 @@
 # Signup Form Skill - Quick Reference
 
-Production-ready specification for the complete 7-step merchant signup form with 116+ fields, Google Maps address autocomplete, and multi-level conditionals.
+Production-ready specification for the complete 6-step merchant signup form with 116+ fields, Google Maps address autocomplete, and multi-level conditionals.
 
 ---
 
 ## 📚 Documentation Files
 
 ### Main Specification
-- **skill.md** - Complete form specification (116+ fields across 7 steps, validations, APIs)
+- **skill.md** - Complete form specification (116+ fields across 6 steps, validations, APIs)
 - **reference/STEP4_OWNER_INFORMATION.md** - Detailed Step 4 specification (45 owner fields, primary contact, 2 Google autocompletes)
 
 ### Implementation Guides
@@ -35,7 +35,7 @@ Production-ready specification for the complete 7-step merchant signup form with
 
 ## 📋 What's Included
 
-✅ **All 7 Steps** - Account → Company → Product → Owners → Banking → Final → Signature
+✅ **All 6 Steps** - Account → Company → Product → Owners → Banking → Final
 
 ✅ **116+ Fields** - Complete field specifications with validation rules
 
