@@ -5,28 +5,28 @@ description: Step 2 Company Information - Business details, legal address, reven
 
 # STEP 2: Company Information
 
-Second step of the 7-step signup form. Collects company business details, addresses, and revenue model information.
+Second step of the 6-step signup form. Collects company business details, addresses, and revenue model information.
 
 ---
 
 ## Fields
 
-**Company Details** (11 fields):
+**Company Details** (9 fields):
+
+> ℹ️ **`country` and `business_state` are Step 1 fields** (see [STEP1_ACCOUNT_INFORMATION.md](STEP1_ACCOUNT_INFORMATION.md)). They are **NOT** collected in Step 2. The Step 2 fields below that vary by country (`federal_tax_id`, `business_register_number`) read the `country` value the merchant selected in Step 1, which persists on the application/company record.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| legal_name | text | Yes | Max 60 chars |
-| name | text | Yes | DBA name, max 60 chars |
-| **country** | **select** | **Yes** | **API: `/api/partner/countries`** - Controls business_state & business_register_number visibility |
-| business_state | select | Conditional | Show ONLY if country="1" (United States), API: `/api/partner/states` |
+| legal_name | text | Yes | Max 60 chars. **Pre-fill from Step 1 `name` field** |
+| name | text | Yes | DBA name, max 60 chars. **Pre-fill from Step 1 `name` field** |
 | industry_type | select | Yes | API: `/api/partner/industry-types` |
 | annual_sales | text | No | Numeric, variant-specific |
 | customer_service_telephone_number | tel | Yes | Use intl-tel-input |
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
 | business_formed | date | Yes | YYYY-MM-DD, use date picker |
 | business_organized | select | Yes | Static (slug): Corporation, LLC, Partnership, Government, Sole-Proprietorship, Non-Profit, Other |
-| federal_tax_id | text | Yes | Encrypted, max 20 chars |
-| business_register_number | text | Conditional | Show ONLY if country≠"1" (not US), max 20 chars |
+| federal_tax_id | text | Yes | Encrypted, max 20 chars. Formatted input — see **Federal Tax ID Input Format** below. Label/format vary by Step 1 `country` |
+| business_register_number | text | Conditional | Show ONLY if Step 1 `country`≠"1" (not US), max 20 chars (11 for Canada) |
 
 **Revenue Model** (3 fields - Checkbox Array with Dependent Hierarchy):
 
@@ -92,9 +92,42 @@ ELSE:
 
 ---
 
+## Pre-fill from Step 1
+
+**legal_name and name (DBA name) fields:**
+- Both fields are **pre-populated** with the Step 1 `name` value (company name entered by merchant)
+- This is server-side data: `$company->name` or `$application->company->name`
+- User can edit these values if needed
+- Save any changes to the database on Step 2 submission
+
+**Implementation** (server-side pre-population):
+```blade
+<!-- In Step 2 form (server-side render) -->
+<input type="text" name="legal_name" value="{{ $company->name }}" 
+       placeholder="Legal Company Name" max="60" required>
+
+<input type="text" name="name" value="{{ $company->name }}" 
+       placeholder="DBA (Doing Business As) Name" max="60" required>
+```
+
+**Or if client-side population**:
+```javascript
+// On Step 2 page load, retrieve Step 1 company name
+const step1CompanyName = localStorage.getItem('step1_company_name') 
+                      || $('input[name="name"]').val(); // fallback
+
+// Pre-fill Step 2 fields
+$('input[name="legal_name"]').val(step1CompanyName);
+$('input[name="name"]').val(step1CompanyName);
+```
+
+---
+
 ## Libraries Required
 
 - `Google Maps Places API` - Address autocomplete (legal + physical)
+- `bootstrap-select` - Country selectpicker used by the autocomplete population
+- `Cleave.js` v1.6.0 - Federal Tax ID input masking (see Federal Tax ID Input Format)
 - Date picker library
 - `intl-tel-input` - Phone formatting
 
@@ -102,9 +135,49 @@ ELSE:
 
 ## Google Maps Implementation
 
-**Script Include**:
+> 🚨 **MUST IMPLEMENT — do NOT skip the autocomplete input.** Generators frequently render the six address fields (`street_number`, `route`, `locality`, …) but omit the `#autocomplete` search box and its wrapper, because earlier sections describe the autocomplete as *behavior* rather than *markup*. The address box will not appear unless you render the exact HTML in **Required Address HTML** below. The JavaScript alone does nothing without this input element in the DOM.
+
+### Why this gets skipped (and how to avoid it)
+
+The autocomplete is **three concrete pieces that must all be present**, in this order:
+1. **The Maps script tag** — loaded synchronously (no `async`/`defer`) *before* the init script, with a real API key (`{{ config('app.google_map_key') }}`), not a literal placeholder. If `google` is undefined, `google.maps.event.addDomListener(...)` throws on line 1 and the whole init aborts.
+2. **The HTML** — the `#autocomplete` search input inside `#address_area`, plus the `#street_area` container (initially `d-none`) holding the six address fields. Missing input = no search box.
+3. **The init JS** — binds `google.maps.places.Autocomplete` to `#autocomplete` and, on `place_changed`, fills the fields, shows `#street_area`, hides `#address_area`.
+
+If any one is missing the feature silently does nothing — so render **all three**.
+
+### Required Address HTML (render exactly)
+
 ```html
-<script src="https://maps.google.com/maps/api/js?key={GOOGLE_API_KEY}&libraries=places"></script>
+<!-- 1) Autocomplete search box: shown initially when no address data exists -->
+<div class="form-group" id="address_area">
+    <label for="autocomplete">Address Lookup</label>
+    <input autocomplete="off" type="search" name="autocomplete" id="autocomplete"
+           class="form-control" placeholder="Must be a physical location">
+</div>
+
+<!-- 2) Address fields: hidden until an address is picked (d-none), then shown + required -->
+<div class="row d-none" id="street_area">
+    <div class="form-group"><label for="street_number">Street Number</label>
+        <input id="street_number" name="street_number" class="form-control"></div>
+    <div class="form-group"><label for="route">Street Address</label>
+        <input id="route" name="street_address" class="form-control"></div>
+    <div class="form-group" id="city_area"><label for="locality">City</label>
+        <input id="locality" name="city" class="form-control"></div>
+    <div class="form-group" id="state_area"><label for="administrative_area_level_1">State/Province</label>
+        <input id="administrative_area_level_1" name="state" class="form-control"></div>
+    <div class="form-group" id="postal_area"><label for="postal_code">Postal code</label>
+        <input id="postal_code" name="postal_code" class="form-control"></div>
+    <div class="form-group company-address-country"><label for="country">Country</label>
+        <select id="country" name="address_country" class="form-control selectpicker" data-live-search="true"></select></div>
+</div>
+```
+
+> ⚠️ **ID vs name mismatch is intentional** — Google's `place_changed` handler looks up elements by the **Google component id** (`route`, `locality`, `administrative_area_level_1`, `postal_code`, `country`), while form submission uses the **`name`** (`street_address`, `city`, `state`, `postal_code`, `address_country`). Keep both exactly as shown or auto-population breaks. The physical-address block mirrors this with `physical_address_*` ids.
+
+**Script Include** (synchronous, before init — see note above):
+```html
+<script src="https://maps.google.com/maps/api/js?key={{ config('app.google_map_key') }}&libraries=places" type="text/javascript"></script>
 ```
 
 **Complete JavaScript Implementation**:
@@ -321,26 +394,7 @@ Physical Address:
 
 ### Country-Based Conditionals (Level 1)
 
-**country Field** (Dropdown with Selectpicker):
-- **ID**: `id="business_formed_in"`
-- **Name**: `name="country"`
-- **API**: `GET /api/partner/countries` with header `Authorization: {security_key}`
-- **Required**: Yes
-- **Searchable**: Yes (selectpicker with live-search)
-- **Values**: { "name": "United States", "id": "1" }, { "name": "Canada", "id": "2" }, etc.
-- **CRITICAL**: Use `id` value for conditionals, not `name`
-
-**business_state Field** (Show ONLY if country="1"):
-- **API**: `GET /api/partner/states` with header `Authorization: {security_key}`
-- **Conditional Logic**:
-  ```javascript
-  IF country = "1" (United States):
-    SHOW business_state dropdown
-    MAKE business_state REQUIRED
-  ELSE:
-    HIDE business_state dropdown
-    CLEAR value
-  ```
+> ℹ️ **`country` is selected in Step 1**, not here. The conditionals below read that persisted Step 1 value (server-side it is available as `$company->country`; client-side, load it into the page and compare). `country` and `business_state` themselves are **not** rendered on Step 2.
 
 **business_register_number Field** (Show ONLY if country≠"1"):
 - **Conditional Logic**:
@@ -357,6 +411,68 @@ Physical Address:
 **federal_tax_id Label** (Changes based on country):
 - **If country="1" (US)**: Label = "Federal Tax ID"
 - **If country≠"1"**: Label = "Federal Tax ID (or Corporation Tax Number equivalent)"
+
+---
+
+## Federal Tax ID Input Format (REQUIRED)
+
+The `federal_tax_id` input (`id="txn_id"`, `name="federal_tax_id"`) is a **formatted, masked input** driven by [Cleave.js](https://github.com/nosir/cleave.js) v1.6.0. It is **not** a plain text box. Set `inputmode="numeric"`, `maxlength="20"` on the input, and apply the mask below whenever `country` or `business_organized` changes.
+
+**Mask depends on the Step 1 `country`**:
+
+| Country | Cleave config | Result |
+|---------|---------------|--------|
+| US / Canada / Puerto Rico (`1`, `2`, `3`) | `{ numericOnly: true, blocks: [3, 2, 4], delimiters: ['-', '-'] }` | `123-45-6789` |
+| All other countries | `{ numericOnly: true, blocks: [2, 7], delimiters: ['-'] }` | `12-3456789` |
+
+**Enable / disable rules** (evaluated on load and whenever `country` or `business_organized` changes):
+- **Sole Proprietorship** (`business_organized = "5"`): **disable** the field, remove `required`, clear the value. Show the hint: *"Sole proprietors: You will be asked for your SSN when setting up your account."*
+- **Canada** (`country = "2"`): **disable** the field, remove `required`, clear the value.
+- **Any other valid country + business type**: enable, mark `required`, and (re)apply the Cleave mask for that country.
+- Always **destroy the previous Cleave instance** before creating a new one (re-formatting on country change), else masks stack.
+
+**Validation** (`jquery-validate` custom method):
+- Minimum **9 digits** for US/Canada/PR (`country` ∈ {1,2,3}).
+- Minimum **11 digits** when also Sole Proprietorship (`business_organized = "5"`).
+- Message: *"Please enter at least 9 digits"*.
+
+**Reference implementation**:
+```javascript
+let activeFormat = null;
+
+function clearActiveFormat() {
+    if (activeFormat) { activeFormat.destroy(); activeFormat = null; }
+}
+
+function manageFederalTaxIdFormat(country) {
+    const isUSCanadaPR = ['1', '2', '3'].includes(country);
+    const formatConfig = isUSCanadaPR
+        ? { numericOnly: true, blocks: [3, 2, 4], delimiters: ['-', '-'] }  // 123-45-6789
+        : { numericOnly: true, blocks: [2, 7], delimiters: ['-'] };          // 12-3456789
+    activeFormat = new Cleave('#txn_id', formatConfig);
+}
+
+function manageFederalTaxId(country, businessOrganized) {
+    const $txnId = $('#txn_id');
+    const isSoleProprietorship = businessOrganized === '5';
+    clearActiveFormat();
+    manageFederalTaxIdLabel(country); // swap label text per country (see above)
+
+    if (isSoleProprietorship || country === '2') {
+        // Sole proprietor or Canada -> disabled, not required, cleared
+        $txnId.prop('disabled', true).removeAttr('required')
+              .removeClass('is-invalid error').val('').trigger('change');
+    } else {
+        $txnId.prop('disabled', false).attr('required', 'required');
+        manageFederalTaxIdFormat(country);
+    }
+}
+```
+
+**Required library** — add Cleave.js to the page:
+```html
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
+```
 
 ### Address Conditionals (Level 1)
 
@@ -435,9 +551,9 @@ Response: { next_step_url, message }
 
 ## Field Summary
 
-**Total Fields**: 28  
-**Required Fields**: 22  
-**Conditional Fields**: 6  
+**Total Fields**: 26 (country + business_state moved to Step 1)  
+**Required Fields**: 21  
+**Conditional Fields**: 5  
 **Google Maps Autocomplete**: 2 (legal + physical)
 
 ---
