@@ -128,8 +128,48 @@ $('input[name="name"]').val(step1CompanyName);
 - `Google Maps Places API` - Address autocomplete (legal + physical)
 - `bootstrap-select` - Country selectpicker used by the autocomplete population
 - `Cleave.js` v1.6.0 - Federal Tax ID input masking (see Federal Tax ID Input Format)
-- Date picker library
+- Date picker library (e.g., Flatpickr, Bootstrap DatePicker, or similar)
 - `intl-tel-input` - Phone formatting
+
+---
+
+## Date Picker - Business Formed Field
+
+**Field**: `business_formed`  
+**Type**: DATE input with date picker  
+**Format**: YYYY-MM-DD  
+**Validation**: 
+- Required
+- Must be on or after 1800-01-01
+- Must be today or in the past (cannot be future date)
+
+**HTML**:
+```html
+<div class="form-group">
+    <label for="business_formed">Business Formation Date</label>
+    <input type="date" id="business_formed" name="business_formed" 
+           class="form-control" required
+           min="1800-01-01" max="today">
+</div>
+```
+
+**JavaScript (Flatpickr Example)**:
+```javascript
+// Initialize date picker for business_formed
+flatpickr('#business_formed', {
+    mode: 'single',
+    format: 'Y-m-d',
+    minDate: '1800-01-01',
+    maxDate: new Date(), // Cannot select future date
+    defaultDate: null,
+    placeholder: 'YYYY-MM-DD'
+});
+```
+
+**Validation**: Backend validates via ApplicationStepRequest:
+```php
+'business_formed' => 'required|date_format:Y-m-d|after_or_equal:1800-01-01|before_or_equal:today'
+```
 
 ---
 

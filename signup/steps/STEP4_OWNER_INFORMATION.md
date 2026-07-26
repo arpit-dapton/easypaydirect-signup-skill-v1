@@ -48,6 +48,104 @@ Step 4 collects:
 
 ---
 
+## Date Picker Fields
+
+Step 4 has three date fields for each owner (Owner 1 and Owner 2). All must use date picker with format YYYY-MM-DD.
+
+### 1. Date of Birth (dob)
+
+**Field**: `dob[1]`, `dob[2]`  
+**Type**: DATE input with picker  
+**Format**: YYYY-MM-DD  
+**Required**: Yes  
+**Validation**: Must be a valid past date (cannot be today or future)
+
+**HTML**:
+```html
+<div class="form-group">
+    <label for="dob_1">Date of Birth (Owner 1)</label>
+    <input type="date" id="dob_1" name="dob[1]" class="form-control" required>
+</div>
+```
+
+**JavaScript (Flatpickr)**:
+```javascript
+flatpickr('#dob_1', {
+    mode: 'single',
+    format: 'Y-m-d',
+    maxDate: new Date(), // Cannot be today or future
+    placeholder: 'YYYY-MM-DD'
+});
+```
+
+### 2. Driver License Expiration Date
+
+**Field**: `driver_license_expiration_date[1]`, `driver_license_expiration_date[2]`  
+**Type**: DATE input with picker  
+**Format**: YYYY-MM-DD  
+**Required**: Yes (only if country=US)  
+**Validation**: Must be today or in the future (cannot be past date)
+
+**HTML**:
+```html
+<div class="form-group">
+    <label for="driver_license_expiration_date_1">Driver License Expiration (Owner 1)</label>
+    <input type="date" id="driver_license_expiration_date_1" 
+           name="driver_license_expiration_date[1]" class="form-control">
+</div>
+```
+
+**JavaScript (Flatpickr)**:
+```javascript
+flatpickr('#driver_license_expiration_date_1', {
+    mode: 'single',
+    format: 'Y-m-d',
+    minDate: new Date(), // Cannot be in the past
+    placeholder: 'YYYY-MM-DD'
+});
+```
+
+### 3. Bankruptcy Discharge Date
+
+**Field**: `bankruptcy_discharged_date[1]`, `bankruptcy_discharged_date[2]`  
+**Type**: DATE input with picker  
+**Format**: YYYY-MM-DD  
+**Required**: Conditional (only if bankruptcy_discharged=1)  
+**Validation**: Must be a valid past date (cannot be today or future)
+
+**HTML**:
+```html
+<div class="form-group" id="bankruptcy_discharged_date_wrapper" style="display: none;">
+    <label for="bankruptcy_discharged_date_1">Bankruptcy Discharge Date (Owner 1)</label>
+    <input type="date" id="bankruptcy_discharged_date_1" 
+           name="bankruptcy_discharged_date[1]" class="form-control">
+</div>
+```
+
+**Show/Hide Logic**:
+```javascript
+// Show this field only when bankruptcy_discharged[1] = 1
+$('input[name="bankruptcy_discharged[1]"]').on('change', function() {
+    if ($(this).val() === '1') {
+        $('#bankruptcy_discharged_date_wrapper').show();
+    } else {
+        $('#bankruptcy_discharged_date_wrapper').hide().val('');
+    }
+});
+```
+
+**JavaScript (Flatpickr)**:
+```javascript
+flatpickr('#bankruptcy_discharged_date_1', {
+    mode: 'single',
+    format: 'Y-m-d',
+    maxDate: new Date(), // Cannot be today or future
+    placeholder: 'YYYY-MM-DD'
+});
+```
+
+---
+
 ## Primary Contact Field
 
 **Question**: "Are you the business owner?"
@@ -153,9 +251,62 @@ step_count=4
 | email | email | email[1] | required, valid email | **HIDDEN if primary_contact=1**, visible/editable if primary_contact=0 |
 | phone | tel | phone[1] | required | intl-tel-input format |
 | title | select | title[1] | required | **Use slug values**: CEO, CFO, Chairman, Co-owner, Controller, Director, General-Manager, Office-Manager, Owner, Partner, President, Treasurer, Vice-President, Other |
-| ssn | text | ssn[1] | required | Masked, encrypted in DB |
+| ssn | text | ssn[1] | required | **Format: XXX-XX-XXXX** (9 digits with dashes), NOT masked in input |
 | dob | date | dob[1] | required | YYYY-MM-DD format |
 | ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51% |
+
+### SSN Input - Social Security Number
+
+⚠️ **IMPORTANT: SSN should NOT be masked. Format input as XXX-XX-XXXX**
+
+**Field**: `ssn[1]`, `ssn[2]`  
+**Type**: TEXT input with auto-formatting  
+**Format**: XXX-XX-XXXX (e.g., 123-45-6789)  
+**Required**: Yes  
+**Validation**: 9 numeric digits (dashes added automatically)
+
+**HTML**:
+```html
+<div class="form-group">
+    <label for="ssn_1">Social Security Number (Owner 1)</label>
+    <input type="text" id="ssn_1" name="ssn[1]" class="form-control" 
+           placeholder="XXX-XX-XXXX" maxlength="11" required
+           inputmode="numeric" pattern="[0-9\-]{11}">
+</div>
+```
+
+**JavaScript - Auto-format on input**:
+```javascript
+// Format SSN as user types: XXX-XX-XXXX
+$('#ssn_1').on('input', function() {
+    let value = $(this).val().replace(/\D/g, ''); // Remove non-digits
+    
+    if (value.length > 0) {
+        if (value.length <= 3) {
+            value = value;
+        } else if (value.length <= 5) {
+            value = value.substring(0, 3) + '-' + value.substring(3);
+        } else {
+            value = value.substring(0, 3) + '-' + value.substring(3, 5) + '-' + value.substring(5, 9);
+        }
+    }
+    
+    $(this).val(value);
+});
+```
+
+**Validation**:
+- Must contain exactly 9 numeric digits
+- Format automatically as user types
+- Backend validation: `'ssn.1' => 'required|string'`
+- Digits extracted before storage: 123456789 (stored without dashes in database)
+
+**Security**:
+- SSN is encrypted in the database (no display/masking in UI)
+- Input field does NOT mask/hide the typed characters
+- Users can see what they're typing for verification purposes
+
+---
 
 ### Address (with Google Maps Autocomplete)
 
@@ -309,6 +460,14 @@ Same as Owner 1 with `[2]` suffix, all fields nullable.
 - Pre-populate hidden fields when primary_contact=1
 - OR leave fields empty (user data still submitted as-is)
 - Backend accepts whatever values are sent in first_name[1], last_name[1], email[1]
+
+---
+
+## Libraries Required
+
+- Date picker library (e.g., Flatpickr, Bootstrap DatePicker, or similar) - For dob, driver_license_expiration_date, bankruptcy_discharged_date
+- Google Maps Places API - Address autocomplete
+- `intl-tel-input` - Phone formatting
 
 ---
 
