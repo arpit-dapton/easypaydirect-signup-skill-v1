@@ -381,23 +381,31 @@ Other
 
 ---
 
-### Is Physical Address Different? (Step 2)
+### Is Physical Address Same as Legal Address? (Step 2)
 
 **Field**: `is_physical_address_same_as_legal_address`
 
+⚠️ **STRICT INSTRUCTION**: 
+- **DEFAULT**: Checked (value='1') = Same as legal address → **HIDE physical address fields**
+- **When unchecked** (value='0') = Different from legal address → **SHOW physical address fields (REQUIRED)**
+
 **HTML Values** (Radio):
 ```
-yes: "Yes, physical address is different"
-no: "No, physical address is same"
+checked='1': "Yes, same as legal address" (DEFAULT)
+checked='0': "No, different physical address"
 ```
 
-**API Submission Values** (Convert to):
+**API Submission Values**:
 ```
-1: Yes, different (submit physical address fields)
-0: No, same (do NOT submit physical address fields)
+1: Same address (DEFAULT) - Do NOT collect/submit physical address fields
+0: Different address - MUST collect and submit all physical address fields
 ```
 
-**CRITICAL**: The radio uses "yes"/"no" strings, but must convert to 1/0 for API!
+**CRITICAL Logic**:
+- Form loads with radio **CHECKED** (value='1')
+- Physical address section is **HIDDEN by default**
+- When user unchecks (value='0'), physical address fields **SHOW and become REQUIRED**
+- When user checks again (value='1'), physical address fields **HIDE and become NOT REQUIRED** (clear values)
 
 ---
 
@@ -437,6 +445,157 @@ API submission format:
 HTML form values (varies):
 May be: "yes"/"no", "1"/"0", true/false
 Must convert before API submission!
+```
+
+---
+
+## Searchable Dropdowns (Live Search)
+
+⚠️ **Only 3 dropdowns are SEARCHABLE with live search enabled:**
+
+| Step | Field | Library | Implementation |
+|------|-------|---------|-----------------|
+| 1 | country | bootstrap-select | `data-live-search="true"` |
+| 1 | business_state | bootstrap-select | `data-live-search="true"` |
+| 3 | shopping_cart | bootstrap-select | `data-live-search="true"` |
+
+**All other dropdowns are NORMAL (no search)**: industry_type, howdidyouhear, other_interests_capital
+
+### Implementation with bootstrap-select (Searchable Dropdowns)
+
+**HTML Template**:
+```html
+<div class="form-group">
+    <label for="country">Country *</label>
+    <select id="country" name="country" class="form-control selectpicker" 
+            data-live-search="true" data-style="btn-light" 
+            data-width="100%" required>
+        <option value="" disabled selected>Select Country...</option>
+        <!-- Options populated via JavaScript -->
+    </select>
+    <div class="invalid-feedback" id="country_error"></div>
+</div>
+```
+
+**Required Libraries**:
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
+```
+
+**JavaScript - Fetch & Initialize**:
+```javascript
+$(document).ready(function() {
+    const apiKey = sessionStorage.getItem('api_key');
+    
+    // Fetch countries for searchable dropdown
+    $.ajax({
+        url: '/api/partner/countries',
+        type: 'GET',
+        headers: { 'Authorization': apiKey },
+        success: function(response) {
+            const select = $('#country');
+            response.data.forEach(item => {
+                select.append(`<option value="${item.code}">${item.name}</option>`);
+            });
+            // CRITICAL: Refresh selectpicker after adding options
+            select.selectpicker('refresh');
+        }
+    });
+    
+    // Validation on change
+    $('#country').on('change', function() {
+        const value = $(this).val();
+        const errorDiv = $('#country_error');
+        
+        if (!value) {
+            $(this).addClass('is-invalid');
+            errorDiv.text('Country is required').show();
+            return false;
+        } else {
+            $(this).removeClass('is-invalid');
+            errorDiv.hide();
+            
+            // Trigger conditional field updates (e.g., business_state)
+            updateDependentFields();
+            return true;
+        }
+    });
+});
+```
+
+**Validation on Form Submit**:
+```javascript
+function validateSearchableDropdowns() {
+    let valid = true;
+    
+    const searchables = ['country', 'business_state', 'shopping_cart'];
+    
+    searchables.forEach(fieldId => {
+        const select = $(`#${fieldId}`);
+        const value = select.val();
+        const errorDiv = $(`#${fieldId}_error`);
+        
+        if (!value || value === '') {
+            select.addClass('is-invalid');
+            errorDiv.text('This field is required').show();
+            valid = false;
+        } else {
+            select.removeClass('is-invalid');
+            errorDiv.hide();
+        }
+    });
+    
+    return valid;
+}
+
+// Call before form submission
+$('#signupForm').on('submit', function(e) {
+    if (!validateSearchableDropdowns()) {
+        e.preventDefault();
+        return false;
+    }
+});
+```
+
+### CSS for Proper UI
+
+```css
+.selectpicker {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.selectpicker:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.selectpicker.is-invalid {
+    border-color: #dc3545;
+}
+
+.selectpicker.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.bootstrap-select .dropdown-toggle:after {
+    content: '';
+}
+
+.bootstrap-select .dropdown-menu {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
 ```
 
 ---
@@ -486,12 +645,25 @@ $('#shopping_cart').on('change', function() {
 
 ```javascript
 // Convert radio values to API format
+// is_physical_address_same_as_legal_address: 1=same, 0=different
 function prepareFormData(formData) {
-    // Radio "yes"/"no" → 1/0
-    if (formData.is_physical_address_same_as_legal_address === 'no') {
-        formData.is_physical_address_same_as_legal_address = 0;  // Same as legal
-    } else {
-        formData.is_physical_address_same_as_legal_address = 1;  // Different
+    const value = $('input[name="is_physical_address_same_as_legal_address"]:checked').val();
+    
+    if (value === '1') {
+        // Checked = Same as legal address
+        formData.is_physical_address_same_as_legal_address = 1;
+        // Do NOT include physical address fields
+        delete formData.physical_address_street_number;
+        delete formData.physical_address_street_address;
+        delete formData.physical_address_city;
+        delete formData.physical_address_state;
+        delete formData.physical_address_postal_code;
+        delete formData.physical_address_country;
+    } else if (value === '0') {
+        // Unchecked = Different from legal address
+        formData.is_physical_address_same_as_legal_address = 0;
+        // MUST include all physical address fields
+        // Validation will ensure they are not empty
     }
     
     // Boolean 0/1 values

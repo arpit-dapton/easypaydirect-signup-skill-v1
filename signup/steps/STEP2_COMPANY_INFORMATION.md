@@ -19,7 +19,7 @@ Second step of the 6-step signup form. Collects company business details, addres
 |-------|------|----------|-------|
 | legal_name | text | Yes | Max 60 chars. **Pre-fill from Step 1 `name` field** |
 | name | text | Yes | DBA name, max 60 chars. **Pre-fill from Step 1 `name` field** |
-| industry_type | select | Yes | API: `/api/partner/industry-types` |
+| industry_type | select | Yes | Normal dropdown (no search) - API: `/api/partner/industry-types` |
 | industry_type_other | text | Conditional | Show if industry_type="other", max 255 chars |
 | customer_service_telephone_number | tel | Yes | Use intl-tel-input |
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
@@ -79,16 +79,18 @@ ELSE:
 
 **Physical/Mailing Address** (8 fields - Conditional on radio selection):
 
+⚠️ **STRICT INSTRUCTION**: `is_physical_address_same_as_legal_address` **must be CHECKED by default** (value='1' = same address). **Only if value=0 (unchecked), collect physical address fields.**
+
 | Field | Type | Name Attribute | Notes |
 |-------|------|---|---|
-| is_physical_address_same_as_legal_address | radio | is_physical_address_same_as_legal_address | Options: yes=different, no=same. Default: no |
-| physical_address_autocomplete | text | physical_address_autocomplete | Google Maps autocomplete - shown only if radio="yes" AND no address data exists |
-| physical_address_street_number | text | physical_address_street_number | REQUIRED (when visible) - Auto-populated from autocomplete |
-| physical_address_street_address | text | physical_address_street_address | REQUIRED (when visible) - Auto-populated from autocomplete |
-| physical_address_city | text | physical_address_city | REQUIRED (when visible) - Auto-populated from autocomplete |
-| physical_address_state | text | physical_address_state | REQUIRED (when visible) - Auto-populated from autocomplete |
-| physical_address_postal_code | text | physical_address_postal_code | REQUIRED (when visible) - Auto-populated from autocomplete |
-| physical_address_country | select | physical_address_country | REQUIRED (when visible) - Auto-populated from autocomplete |
+| is_physical_address_same_as_legal_address | radio | is_physical_address_same_as_legal_address | **DEFAULT CHECKED (value='1')** - Options: checked='1'(same), unchecked='0'(different) |
+| physical_address_autocomplete | text | physical_address_autocomplete | **SHOW ONLY if value='0' (different)** AND no address data exists |
+| physical_address_street_number | text | physical_address_street_number | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
+| physical_address_street_address | text | physical_address_street_address | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
+| physical_address_city | text | physical_address_city | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
+| physical_address_state | text | physical_address_state | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
+| physical_address_postal_code | text | physical_address_postal_code | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
+| physical_address_country | select | physical_address_country | **REQUIRED ONLY if value='0'** - Auto-populated from autocomplete |
 
 ---
 
@@ -432,6 +434,8 @@ Physical Address:
 
 ⚠️ **All conditional fields MUST be hidden on page load** (`style="display: none;"`).
 
+⚠️ **EXCEPTION**: `is_physical_address_same_as_legal_address` radio must be **CHECKED by default** (value='1'). Physical address fields section must be hidden by default.
+
 ### Country-Based Conditionals (Level 1)
 
 > ℹ️ **`country` is selected in Step 1**, not here. The conditionals below read that persisted Step 1 value (server-side it is available as `$company->country`; client-side, load it into the page and compare). `country` and `business_state` themselves are **not** rendered on Step 2.
@@ -528,9 +532,60 @@ function manageFederalTaxId(country, businessOrganized) {
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
 ```
 
-### Address Conditionals (Level 1)
+### Physical Address Conditional (Level 1)
 
-- **Physical address section**: Show if is_physical_address_same_as_legal_address="yes"
+⚠️ **CRITICAL LOGIC**:
+- **Default**: `is_physical_address_same_as_legal_address` = **1 (CHECKED)** = Same as legal address → **HIDE physical address fields**
+- **When UNCHECKED** (value=0) = Different from legal address → **SHOW physical address fields** (REQUIRED)
+
+**HTML - Radio Button (Default Checked)**:
+```html
+<div class="form-group">
+    <label>Is physical address same as legal address?</label>
+    <div class="custom-control custom-radio">
+        <input type="radio" id="is_same_yes" name="is_physical_address_same_as_legal_address" 
+               value="1" class="custom-control-input" checked>
+        <label class="custom-control-label" for="is_same_yes">
+            Yes, same as legal address
+        </label>
+    </div>
+    <div class="custom-control custom-radio">
+        <input type="radio" id="is_same_no" name="is_physical_address_same_as_legal_address" 
+               value="0" class="custom-control-input">
+        <label class="custom-control-label" for="is_same_no">
+            No, different physical address
+        </label>
+    </div>
+</div>
+
+<!-- Physical address fields - HIDDEN BY DEFAULT -->
+<div id="physical_address_section" style="display: none;">
+    <!-- Physical address autocomplete and fields here -->
+</div>
+```
+
+**JavaScript - Show/Hide Logic**:
+```javascript
+$(document).ready(function() {
+    // On change, show/hide physical address section
+    $('input[name="is_physical_address_same_as_legal_address"]').on('change', function() {
+        const value = $(this).val();
+        
+        if (value === '0') {
+            // Different address - SHOW physical address fields (REQUIRED)
+            $('#physical_address_section').show();
+            $('#physical_address_section').find('input, select').prop('required', true);
+        } else {
+            // Same address - HIDE physical address fields (NOT REQUIRED)
+            $('#physical_address_section').hide();
+            $('#physical_address_section').find('input, select').prop('required', false).val('');
+        }
+    });
+    
+    // Initialize on page load (should be hidden since default is checked='1')
+    $('#physical_address_section').hide();
+});
+```
 
 ### Revenue Model Conditionals (Level 2)
 

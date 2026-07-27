@@ -15,11 +15,11 @@ Third step of the 6-step signup form. Collects product fulfillment details, tran
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| customer_service_time | select | Yes | Static: slug values "0-7-days", "7-30-days", "31+days" |
-| refund_policy | select | Yes | Static (slug): Full-Refund, No-Refund, Exchange-Only, Partial-Refund |
-| fulfillment_by | select | Yes | Static (slug): Direct-By-You, Service-Only, Vendor, Others |
+| customer_service_time | select | Yes | Normal dropdown (no search) - Static: slug values "0-7-days", "7-30-days", "31+days" |
+| refund_policy | select | Yes | Normal dropdown (no search) - Static (slug): Full-Refund, No-Refund, Exchange-Only, Partial-Refund |
+| fulfillment_by | select | Yes | Normal dropdown (no search) - Static (slug): Direct-By-You, Service-Only, Vendor, Others |
 | fullfillment_company | text | Conditional | Show if fulfillment_by="Vendor" or "Others" |
-| shopping_cart | select | Yes | API: `/api/partner/shopping-carts` (slug: "Other", "API / Custom Integration", etc) |
+| shopping_cart | select | Yes | **SEARCHABLE** - API: `/api/partner/shopping-carts` with live search |
 | shopping_cart_other | text | Conditional | Show if shopping_cart="Other" or "API / Custom Integration" |
 | leave_deposit | select | Yes | Options: Yes(1), No(0) |
 

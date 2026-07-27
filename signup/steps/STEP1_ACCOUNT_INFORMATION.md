@@ -19,8 +19,8 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 | phone | tel | Yes | Use intl-tel-input library |
 | name | text | Yes | Company name, max 60 chars |
 | website | url | Yes | Valid URL or social media profile |
-| country | select | Yes | API: `/api/partner/countries` |
-| business_state | select | Yes | Show only if country="US", API: `/api/partner/states` |
+| country | select | Yes | **SEARCHABLE** - API: `/api/partner/countries` with live search |
+| business_state | select | Yes | **SEARCHABLE** - Show only if country="US", API: `/api/partner/states` with live search |
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
 
