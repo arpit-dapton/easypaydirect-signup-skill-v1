@@ -38,13 +38,40 @@ Step 4 collects:
 
 ---
 
+## ⚠️ CRITICAL: FormData Requirement
+
+**BEFORE implementing, read this carefully:**
+
+```javascript
+// ✅ CORRECT - Use FormData
+const formData = new FormData(form);
+formData.append('first_name[1]', value);
+
+$.ajax({
+    data: formData,
+    processData: false,      // ← REQUIRED
+    contentType: false,      // ← REQUIRED
+});
+
+// ❌ COMPLETELY WRONG - Do NOT use JSON
+const data = { 'first_name[1]': value };  // ❌
+JSON.stringify(data)                       // ❌
+contentType: 'application/json'            // ❌
+
+// WHY IT MATTERS:
+// FormData sends as: first_name[1]=John → Laravel parses as array → Validation works ✅
+// JSON sends as: {"first_name[1]":"John"} → Laravel sees literal key → Validation fails ❌
+```
+
+---
+
 ## API Endpoint
 
-**POST `/v1/ownership`**
+**POST `/api/v1/ownership`**
 
 **Authentication**: X-API-Key header (from Step 1)
 
-**Content-Type**: application/x-www-form-urlencoded
+**Content-Type**: application/x-www-form-urlencoded (FormData automatically sets this)
 
 ---
 
@@ -159,8 +186,12 @@ flatpickr('#bankruptcy_discharged_date_1', {
 
 **If primary_contact=1 (IS owner)**:
 - Hide `primary_contact_job_title` field
-- **HIDE** `first_name[1]`, `last_name[1]`, `email[1]` fields 
-- **DO NOT SUBMIT** these fields to API (use user's Step 1 data instead)
+- **HIDE** `first_name[1]`, `last_name[1]`, `email[1]` fields from user input
+- **PRE-FILL (READ-ONLY)** these fields with Step 1 user data:
+  - `first_name[1]` = User's first_name from Step 1
+  - `last_name[1]` = User's last_name from Step 1
+  - `email[1]` = User's email from Step 1
+- **DO NOT SUBMIT** these fields to API (backend uses Step 1 data instead)
 - Backend uses Step 1 first_name, last_name, email from User record
 - Set `primary_contact_user_id` = newly created Owner 1 user ID
 
@@ -172,13 +203,236 @@ flatpickr('#bankruptcy_discharged_date_1', {
 
 ---
 
+## Pre-fill Step 1 Data When primary_contact=1
+
+⚠️ **When primary_contact=1, MUST pre-fill first_name[1], last_name[1], email[1] from Step 1 user data**
+
+### How to Retrieve Step 1 User Data
+
+**Option 1: From Stored User Session/LocalStorage**:
+```javascript
+// Store user data in Step 1 after form submission
+localStorage.setItem('step1_user_data', JSON.stringify({
+    first_name: response.first_name,
+    last_name: response.last_name,
+    email: response.email,
+    phone: response.phone
+}));
+```
+
+**Option 2: From API Call to User Endpoint** (if Step 1 data not stored):
+```javascript
+// Fetch user data from backend
+$.ajax({
+    url: `/api/partner/user/${uuid}`,
+    type: 'GET',
+    headers: { 'Authorization': apiKey },
+    success: function(response) {
+        const userData = response.data;
+        preFillOwnerData(userData);
+    }
+});
+```
+
+### HTML - Owner 1 Basic Info (with hidden inputs)
+
+```html
+<!-- Hidden inputs that store Step 1 data - NOT visible to user -->
+<input type="hidden" name="first_name[1]" id="first_name_1" value="">
+<input type="hidden" name="last_name[1]" id="last_name_1" value="">
+<input type="hidden" name="email[1]" id="email_1" value="">
+
+<!-- Display-only divs showing the pre-filled data -->
+<div id="owner_info_display" style="display: none;">
+    <div class="alert alert-info">
+        <p><strong>Owner Information:</strong></p>
+        <p><strong>Name:</strong> <span id="display_name"></span></p>
+        <p><strong>Email:</strong> <span id="display_email"></span></p>
+        <small>This information is taken from your Step 1 signup data</small>
+    </div>
+</div>
+
+<!-- Editable form fields - show when primary_contact=0 -->
+<div id="owner_info_form" style="display: none;">
+    <div class="form-group">
+        <label for="first_name_input_1">First Name *</label>
+        <input type="text" id="first_name_input_1" name="first_name_edit[1]" 
+               class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="last_name_input_1">Last Name *</label>
+        <input type="text" id="last_name_input_1" name="last_name_edit[1]" 
+               class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="email_input_1">Email *</label>
+        <input type="email" id="email_input_1" name="email_edit[1]" 
+               class="form-control" required>
+    </div>
+</div>
+```
+
+### JavaScript - Pre-fill and Toggle Display
+
+```javascript
+$(document).ready(function() {
+    const apiKey = sessionStorage.getItem('api_key');
+    const uuid = sessionStorage.getItem('signup_uuid');
+    
+    // Fetch Step 1 user data
+    function fetchStep1UserData() {
+        $.ajax({
+            url: `/api/v1/user/${uuid}`,
+            type: 'POST',
+            headers: { 'X-API-Key': apiKey },
+            success: function(response) {
+                if (response.status && response.data) {
+                    const userData = response.data;
+                    preFillOwnerData(userData);
+                }
+            },
+            error: function() {
+                // Fallback: try localStorage
+                const stored = localStorage.getItem('step1_user_data');
+                if (stored) {
+                    const userData = JSON.parse(stored);
+                    preFillOwnerData(userData);
+                }
+            }
+        });
+    }
+    
+    // Pre-fill hidden inputs with Step 1 data
+    function preFillOwnerData(userData) {
+        $('#first_name_1').val(userData.first_name || '');
+        $('#last_name_1').val(userData.last_name || '');
+        $('#email_1').val(userData.email || '');
+        
+        // Display the pre-filled data
+        $('#display_name').text(userData.first_name + ' ' + userData.last_name);
+        $('#display_email').text(userData.email);
+    }
+    
+    // Toggle display based on primary_contact selection
+    $('input[name="primary_contact"]').on('change', function() {
+        const isPrimaryContact = $(this).val() === '1';
+        
+        if (isPrimaryContact) {
+            // SHOW: Display-only info (pre-filled from Step 1)
+            $('#owner_info_display').show();
+            $('#owner_info_form').hide();
+            
+            // Clear and disable editable fields
+            $('#first_name_input_1, #last_name_input_1, #email_input_1').val('');
+        } else {
+            // SHOW: Editable form fields
+            $('#owner_info_display').hide();
+            $('#owner_info_form').show();
+            
+            // Enable editing
+            $('#first_name_input_1, #last_name_input_1, #email_input_1').prop('required', true);
+        }
+    });
+    
+    // On form load, fetch and pre-fill Step 1 data
+    fetchStep1UserData();
+    
+    // Initialize visibility (default: primary_contact=1)
+    $('#owner_info_display').show();
+    $('#owner_info_form').hide();
+});
+```
+
+### Form Submission - Handle Both Cases
+
+```javascript
+$('#ownershipForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const primaryContact = $('input[name="primary_contact"]:checked').val();
+    const formData = new FormData(this);
+    
+    // If primary_contact=1, use hidden inputs (pre-filled from Step 1)
+    // If primary_contact=0, use editable form inputs
+    if (primaryContact === '0') {
+        // User is not owner - submit edited data
+        formData.set('first_name[1]', $('#first_name_input_1').val());
+        formData.set('last_name[1]', $('#last_name_input_1').val());
+        formData.set('email[1]', $('#email_input_1').val());
+    }
+    // If primaryContact === '1', hidden inputs already have correct values
+    
+    // Submit form
+    $.ajax({
+        url: '/api/v1/ownership',
+        type: 'POST',
+        headers: { 'X-API-Key': apiKey },
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.status) {
+                window.location.href = `/signup/step/5/${uuid}`;
+            }
+        }
+    });
+});
+```
+
+---
+
 ## Form Submission Format
 
-**POST /v1/ownership** with array notation:
+**POST /api/v1/ownership** - MUST use FormData (application/x-www-form-urlencoded)
 
-⚠️ **CRITICAL: ALL fields MUST use consistent `[1]` bracket notation** (NOT object `{1: value}` format)
-- ✅ CORRECT: `bankruptcy_filed[1]=1`, `bankruptcy_discharged[1]=0`, `bankruptcy_discharged_date[1]=2008-05-23`
-- ❌ WRONG: `bankruptcy_discharged_date={1: "2008-05-23", 2: ""}`
+⚠️ **CRITICAL INSTRUCTIONS** (Follow ALL 4):
+
+1. **Use FormData - NOT JSON**:
+   ```javascript
+   // ✅ CORRECT
+   const formData = new FormData();
+   formData.append('first_name[1]', 'John');
+   formData.append('last_name[1]', 'Doe');
+   
+   // ❌ WRONG - Do NOT do this:
+   JSON.stringify({...})
+   contentType: 'application/json'
+   ```
+
+2. **ALL fields MUST use bracket notation** `[1]` or `[2]` (NOT object `{1: value}`):
+   ```
+   ✅ CORRECT FORMAT:
+   bankruptcy_filed[1]=1
+   bankruptcy_discharged[1]=0
+   bankruptcy_discharged_date[1]=2008-05-23
+   first_name[1]=John
+   
+   ❌ WRONG FORMAT:
+   bankruptcy_discharged_date={1: "2008-05-23", 2: ""}
+   {first_name[1]: "John"}
+   ```
+
+3. **AJAX MUST disable content-type processing**:
+   ```javascript
+   $.ajax({
+       url: '/api/v1/ownership',
+       type: 'POST',
+       headers: { 'X-API-Key': apiKey },
+       data: formData,
+       processData: false,    // ← REQUIRED
+       contentType: false,    // ← REQUIRED (lets browser send as form-data)
+       // ❌ NEVER use: contentType: 'application/json'
+   });
+   ```
+
+4. **How Laravel receives it**:
+   ```
+   Form Data: first_name[1]=John
+                ↓
+   Laravel parses: first_name => [1 => "John"]
+                ↓
+   Validation accesses: first_name.1 ✅
+   ```
 
 ### If primary_contact=1 (User IS the owner):
 
@@ -510,19 +764,23 @@ Owner 2:
 
 ### Form Submission
 
-⚠️ **All owner fields must use bracket array notation `[1]` or `[2]`, NOT object notation `{1: value}`**
+⚠️ **CRITICAL: MUST send as FormData (application/x-www-form-urlencoded), NOT JSON**
 
+All owner fields must use bracket array notation `[1]` or `[2]`, NOT object notation `{1: value}`
+
+**Correct Implementation**:
 ```javascript
 $('#ownership-form').on('submit', function(e) {
     e.preventDefault();
     
     const uuid = localStorage.getItem('signup_uuid');
     const apiKey = sessionStorage.getItem('api_key');
+    
+    // ✅ CORRECT: Use FormData to send as application/x-www-form-urlencoded
     const formData = new FormData(this);
     const primaryContact = $('input[name="primary_contact"]:checked').val();
     
-    // CRITICAL: Ensure all fields use bracket notation [1] or [2]
-    // NOT object notation like {1: value, 2: value}
+    // ❌ DO NOT: Use JSON.stringify() or contentType: 'application/json'
     
     formData.append('uuid', uuid);
     formData.append('primary_contact', primaryContact);
@@ -537,12 +795,15 @@ $('#ownership-form').on('submit', function(e) {
     }
     
     $.ajax({
-        url: '/v1/ownership',
+        url: '/api/v1/ownership',
         type: 'POST',
         headers: { 'X-API-Key': apiKey },
         data: formData,
-        processData: false,
-        contentType: false,
+        processData: false,        // ← Critical: tells jQuery to NOT process FormData
+        contentType: false,        // ← Critical: lets browser set multipart/form-data
+        // ❌ NEVER: contentType: 'application/json'
+        // ❌ NEVER: JSON.stringify(formData)
+        
         success: function(response) {
             if (response.status) {
                 window.location.href = `/signup/step/5/${uuid}`;
@@ -557,6 +818,44 @@ $('#ownership-form').on('submit', function(e) {
     });
 });
 ```
+
+**What Goes Wrong if You Use JSON**:
+```javascript
+// ❌ WRONG - Sends as JSON
+$.ajax({
+    url: '/api/v1/ownership',
+    type: 'POST',
+    headers: { 'X-API-Key': apiKey },
+    contentType: 'application/json',     // ❌ WRONG
+    data: JSON.stringify(formData),      // ❌ WRONG
+    ...
+});
+
+Result: Laravel receives literal key "first_name[1]" as string, not array
+Validation sees: {first_name[1]: "value"} ← No array structure
+Error: "first_name.1 is required" (expected array, got nothing)
+```
+
+**Correct FormData Request**:
+```
+POST /api/v1/ownership HTTP/1.1
+Content-Type: multipart/form-data; boundary=...
+X-API-Key: user-api-key
+
+--boundary
+Content-Disposition: form-data; name="first_name[1]"
+
+John
+--boundary
+Content-Disposition: form-data; name="last_name[1]"
+
+Doe
+--boundary
+...
+```
+
+Laravel receives and parses as: `first_name => [1 => "John"], last_name => [1 => "Doe"]`
+Validation matches: `first_name.1`, `last_name.1` ✅
 
 ### Important: Do NOT Fetch User Data
 
@@ -574,15 +873,22 @@ $('#ownership-form').on('submit', function(e) {
 ```
 IF primary_contact = 0 (NOT owner):
   SHOW: primary_contact_job_title (REQUIRED)
-  SHOW: first_name[1], last_name[1], email[1] (EDITABLE)
-  SUBMIT: first_name[1], last_name[1], email[1] to API
+  SHOW: first_name[1], last_name[1], email[1] (EDITABLE form fields - REQUIRED)
+  SUBMIT: first_name[1], last_name[1], email[1] to API (from editable fields)
   
 ELSE (primary_contact = 1, IS owner):
   HIDE: primary_contact_job_title
-  HIDE: first_name[1], last_name[1], email[1] (COMPLETELY HIDDEN)
-  DO NOT SUBMIT: first_name[1], last_name[1], email[1] to API
-  Backend uses Step 1 user data for these fields
+  HIDE: Editable form fields for first_name[1], last_name[1], email[1]
+  SHOW: Display-only info box with PRE-FILLED Step 1 data
+  SUBMIT: hidden inputs with Step 1 data (first_name[1], last_name[1], email[1])
+  Backend uses these Step 1 values for Owner 1
 ```
+
+**Key Points**:
+- When primary_contact=1: Show "Owner information is taken from Step 1 data" message
+- When primary_contact=0: Show editable form fields for owner data
+- Hidden inputs always exist to store the correct data
+- Form submission uses appropriate data based on primary_contact value
 
 ### Owner 2 Section
 ```

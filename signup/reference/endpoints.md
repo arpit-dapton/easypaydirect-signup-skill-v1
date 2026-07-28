@@ -11,7 +11,7 @@ All form submission and data endpoints used by the signup form.
 - Step 1 → Send only Step 1 fields to `/v1/signup`
 - Step 2 → Send only Step 2 fields to `/v1/application/step`
 - Step 3 → Send only Step 3 fields to `/v1/application/step`
-- Step 4 → Send only Step 4 fields (ownership) to `/v1/ownership`
+- Step 4 → Send only Step 4 fields (ownership) to `/api/v1/ownership`
 - Step 5 → Send only Step 5 fields to `/v1/application/step`
 - Step 6 → Send only Step 6 fields to `/v1/application/step`
 
