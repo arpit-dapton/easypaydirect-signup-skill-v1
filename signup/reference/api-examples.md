@@ -17,25 +17,6 @@ Both use the SAME value (security_key) but DIFFERENT header names!
 
 ---
 
-## Step 0: Get API Key from Login
-
-```javascript
-// After user logs in, store the security_key
-const loginResponse = await fetch('https://emap.epd.dev/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password })
-});
-
-const loginData = await loginResponse.json();
-const apiKey = loginData.user.security_key;  // ← This is the API key
-
-// Store for later use
-sessionStorage.setItem('api_key', apiKey);
-```
-
----
-
 ## Dropdown APIs
 
 ### Load Countries (Example 1)

@@ -11,14 +11,14 @@ Fifth step of the 6-step signup form. Collects bank account and routing informat
 
 ## Fields
 
-> ℹ️ **`country` is a Step 1 field** (see [STEP1_ACCOUNT_INFORMATION.md](STEP1_ACCOUNT_INFORMATION.md)). Step 5 does **NOT** render a country dropdown. The Canada-only conditionals below read the persisted Step 1 `country` value (`$company->country`, where US=`1`, Canada=`2`). Do **not** add a `#country` `<select>` or a `$('#country').on('change')` handler on this step — evaluate the persisted country **once on page load**.
+> ℹ️ **`country` is a Step 1 field** (see [STEP1_ACCOUNT_INFORMATION.md](STEP1_ACCOUNT_INFORMATION.md)). Step 5 does **NOT** render a country dropdown. The Canada-only conditionals below read the persisted Step 1 `country` value (`$company->country`, using the code/slug — `"US"`, `"CA"` — not the numeric `id`). Do **not** add a `#country` `<select>` or a `$('#country').on('change')` handler on this step — evaluate the persisted country **once on page load**.
 
 > ℹ️ **No account-type field.** Bank account type is **not** collected in the UI. The client sends `bank_account_type` programmatically (defaults to `1`); do **not** render a Checking/Savings dropdown or textbox.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| institution_number | text | Conditional | Show if Step 1 `country="2"` (Canada), 3 digits |
-| customer_pay_currency | radio | Conditional | Show if Step 1 `country="2"` (Canada), Options: USD, CAD |
+| institution_number | text | Conditional | Show if Step 1 `country="CA"` (Canada), 3 digits |
+| customer_pay_currency | radio | Conditional | Show if Step 1 `country="CA"` (Canada), Options: USD, CAD |
 | routing_number | text | Yes | Label varies by Step 1 `country` |
 | account_number | text | Yes | Alphanumeric |
 | current_processing | select | No | Options: Yes(1), No(0) |
@@ -45,15 +45,15 @@ Fifth step of the 6-step signup form. Collects bank account and routing informat
 
 ⚠️ **All conditional fields MUST be hidden on page load** (`style="display: none;"`).
 
-- **institution_number**: Show if Step 1 `country="2"` (Canada) — read persisted value, no `#country` dropdown on this step
-- **customer_pay_currency**: Show if Step 1 `country="2"` (Canada)
+- **institution_number**: Show if Step 1 `country="CA"` (Canada) — read persisted value, no `#country` dropdown on this step
+- **customer_pay_currency**: Show if Step 1 `country="CA"` (Canada)
 - **processor_name**: Show if current_processing=1
 
 **Country-based visibility** — evaluate the persisted Step 1 country once on load (server-side `$company->country`, or inject it into the page). Example:
 ```javascript
 // country comes from Step 1 (persisted), NOT a Step 5 <select>
-var companyCountry = "{{ $company->country }}"; // "1" = US, "2" = Canada
-if (companyCountry === "2") { // Canada
+var companyCountry = "{{ $company->country }}"; // code/slug, e.g. "US" or "CA"
+if (companyCountry === "CA") { // Canada
     $('#institution_number_wrapper').show();
     $('#institution_number').prop('required', true);
     $('.canadian_currency_div').show();
@@ -75,11 +75,8 @@ if (companyCountry === "2") { // Canada
   "step_count": 5
 }
 
-// UUID already stored from Step 1, retrieve and use
-const uuid = localStorage.getItem('signup_uuid');
-
-// Redirect to Step 6
-window.location.href = `/signup/step/6/${uuid}`;
+// UUID already obtained from Step 1 — pass it forward to Step 6
+// (storage mechanism is the implementer's choice — see skill.md Guidance section)
 ```
 
 **On Validation Error (HTTP 422)**:

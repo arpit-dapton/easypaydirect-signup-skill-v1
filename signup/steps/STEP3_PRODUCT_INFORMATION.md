@@ -19,7 +19,7 @@ Third step of the 6-step signup form. Collects product fulfillment details, tran
 | refund_policy | select | Yes | Normal dropdown (no search) - Static (slug): Full-Refund, No-Refund, Exchange-Only, Partial-Refund |
 | fulfillment_by | select | Yes | Normal dropdown (no search) - Static (slug): Direct-By-You, Service-Only, Vendor, Others |
 | fullfillment_company | text | Conditional | Show if fulfillment_by="Vendor" or "Others" |
-| shopping_cart | select | Yes | **SEARCHABLE** - API: `/api/partner/shopping-carts` with live search |
+| shopping_cart | select | Yes | Normal dropdown (no search) - API: `/api/partner/shopping-carts` |
 | shopping_cart_other | text | Conditional | Show if shopping_cart="Other" or "API / Custom Integration" |
 | leave_deposit | select | Yes | Options: Yes(1), No(0) |
 

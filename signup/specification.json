@@ -1,10 +1,11 @@
 {
   "signup_form_specification": {
     "total_steps": 6,
-    "total_fields": 59,
+    "total_fields": 114,
     "excluded_features": [
       "plaid_persona_connection",
-      "dynamic_processor_fields"
+      "dynamic_processor_fields",
+      "google_maps_address_autocomplete"
     ],
     "api_integration": {
       "base_domain": "https://emap.epd.dev",
@@ -33,7 +34,6 @@
           ],
           "value_field": "slug",
           "label_field": "name",
-          "searchable": true,
           "cache": true
         },
         "states": {
@@ -47,7 +47,7 @@
           ],
           "value_field": "slug",
           "label_field": "name",
-          "conditional": "country === '1'",
+          "conditional": "country === 'US'",
           "cache": true
         },
         "industry_types": {
@@ -60,7 +60,6 @@
           ],
           "value_field": "slug",
           "label_field": "name",
-          "searchable": true,
           "cache": true
         },
         "referral_sources": {
@@ -210,13 +209,12 @@
             "data_source": "api",
             "value_field": "slug",
             "label_field": "name",
-            "searchable": true,
             "hint": "Select the country where your company is legally registered",
             "depends_on": null,
             "triggers": [
               "business_state"
             ],
-            "trigger_condition": "value === '1'",
+            "trigger_condition": "value === 'US'",
             "validation": [
               "required"
             ],
@@ -235,7 +233,7 @@
             "visibility": "hidden",
             "wrapper_class": "usa_state",
             "depends_on": "country",
-            "depends_condition": "country === '1'",
+            "depends_condition": "country === 'US'",
             "triggers": null,
             "required_message": "Required because your Formation Country is the United States",
             "validation": [
@@ -320,12 +318,11 @@
             "data_source": "api",
             "value_field": "slug",
             "label_field": "name",
-            "searchable": true,
             "auto_populate": true,
             "triggers": [
               "industry_type_other"
             ],
-            "trigger_value": "other_option_id",
+            "trigger_value": "other",
             "validation": [
               "required"
             ],
@@ -336,13 +333,17 @@
             "name": "Industry Type Other",
             "type": "text",
             "required": false,
+            "required_if": "industry_type === 'other'",
             "placeholder": "Industry Type Other",
             "visibility": "hidden",
             "wrapper_class": "industry_other_container",
             "depends_on": "industry_type",
             "depends_condition": "selected_option === 'other'",
             "auto_populate": true,
-            "validation": []
+            "validation": [
+              "required_if:industry_type,other",
+              "max:255"
+            ]
           },
           {
             "id": "annual_sales",
@@ -437,7 +438,7 @@
             "visibility": "hidden",
             "wrapper_id": "business_register_number_div",
             "depends_on": "country",
-            "depends_condition": "country !== '1'",
+            "depends_condition": "country !== 'US'",
             "max_length": 20,
             "max_length_dynamic": true,
             "max_length_by_country": {
@@ -558,7 +559,7 @@
             "validation": []
           },
           {
-            "id": "country",
+            "id": "address_country",
             "name": "Country",
             "type": "select",
             "required": false,
@@ -567,7 +568,6 @@
             "data_source": "api",
             "value_field": "slug",
             "label_field": "name",
-            "searchable": true,
             "auto_populate": true,
             "cache": true,
             "validation": []
@@ -632,7 +632,6 @@
             "data_source": "api",
             "value_field": "slug",
             "label_field": "name",
-            "searchable": true,
             "auto_populate": true,
             "cache": true,
             "validation": []
@@ -780,7 +779,6 @@
             "data_source": "api",
             "value_field": "slug",
             "label_field": "name",
-            "searchable": true,
             "auto_populate": true,
             "cache": true,
             "validation": []
@@ -833,36 +831,39 @@
               "id": "owner[1][first_name]",
               "name": "First Name",
               "type": "text",
-              "required": true,
-              "visibility": "hidden",
-              "prefill": "Auth::user()->first_name",
+              "required": false,
+              "required_if": "primary_contact === 0",
+              "visibility": "hidden_if_primary_contact_1",
+              "note": "Omit this field entirely from the request when primary_contact=1. Backend auto-fills from the Step 1 user record; no frontend prefill/fetch needed.",
               "placeholder": "First Name",
               "validation": [
-                "required"
+                "required_if:primary_contact,0"
               ]
             },
             {
               "id": "owner[1][last_name]",
               "name": "Last Name",
               "type": "text",
-              "required": true,
-              "visibility": "hidden",
-              "prefill": "Auth::user()->last_name",
+              "required": false,
+              "required_if": "primary_contact === 0",
+              "visibility": "hidden_if_primary_contact_1",
+              "note": "Omit this field entirely from the request when primary_contact=1. Backend auto-fills from the Step 1 user record; no frontend prefill/fetch needed.",
               "placeholder": "Last Name",
               "validation": [
-                "required"
+                "required_if:primary_contact,0"
               ]
             },
             {
               "id": "owner[1][email]",
               "name": "Email Address",
               "type": "email",
-              "required": true,
-              "visibility": "hidden",
-              "prefill": "Auth::user()->email",
+              "required": false,
+              "required_if": "primary_contact === 0",
+              "visibility": "hidden_if_primary_contact_1",
+              "note": "Omit this field entirely from the request when primary_contact=1. Backend auto-fills from the Step 1 user record; no frontend prefill/fetch needed.",
               "placeholder": "Email Address",
               "validation": [
-                "required",
+                "required_if:primary_contact,0",
                 "email"
               ]
             },
@@ -1037,7 +1038,7 @@
             "visibility": "hidden",
             "wrapper_id": "institution_number_wrapper",
             "depends_on": "country",
-            "depends_condition": "country === '2'",
+            "depends_condition": "country === 'CA'",
             "max_length": 3,
             "min": 0,
             "placeholder": "Institution Number",
@@ -1052,7 +1053,7 @@
             "visibility": "hidden",
             "wrapper_class": "canadian_currency_div",
             "depends_on": "country",
-            "depends_condition": "country === '2'",
+            "depends_condition": "country === 'CA'",
             "options": [
               {
                 "value": "USD",
@@ -1304,16 +1305,17 @@
     "dynamic_behaviors": [
       {
         "trigger_field": "country",
-        "trigger_value": "1",
+        "trigger_value": "US",
         "target_field": "business_state",
         "action": "show",
         "message": "Required because your Formation Country is the United States"
       },
       {
         "trigger_field": "industry_type",
-        "trigger_value": "other_option",
+        "trigger_value": "other",
         "target_field": "industry_type_other",
-        "action": "show"
+        "action": "show",
+        "action_detail": "required_if:industry_type,other"
       },
       {
         "trigger_field": "marketingModel",
@@ -1354,13 +1356,13 @@
       },
       {
         "trigger_field": "country",
-        "trigger_value": "2",
+        "trigger_value": "CA",
         "target_field": "institution_number",
         "action": "show"
       },
       {
         "trigger_field": "country",
-        "trigger_value": "2",
+        "trigger_value": "CA",
         "target_field": "customer_pay_currency",
         "action": "show"
       }
@@ -1488,27 +1490,27 @@
     "step_navigation": {
       "step_1": {
         "title": "Account Information",
-        "submit_endpoint": "POST /v1/signup",
+        "submit_endpoint": "POST /api/v1/signup",
         "next_step": 2,
         "url_pattern": "/step/2/{uuid}"
       },
       "step_2": {
         "title": "Company Information",
-        "submit_endpoint": "POST /v1/application/step",
+        "submit_endpoint": "POST /api/v1/application/step",
         "next_step": 3,
         "section": "company_info",
         "url_pattern": "/step/3/{uuid}"
       },
       "step_3": {
         "title": "Product Information",
-        "submit_endpoint": "POST /v1/application/step",
+        "submit_endpoint": "POST /api/v1/application/step",
         "next_step": 4,
         "section": "product_info",
         "url_pattern": "/step/4/{uuid}"
       },
       "step_4": {
         "title": "Owner Information",
-        "submit_endpoint": "POST /v1/ownership",
+        "submit_endpoint": "POST /api/v1/ownership",
         "secondary_endpoint": "POST /v1/application/step",
         "next_step": 5,
         "section": "ownership_info",
@@ -1516,17 +1518,16 @@
       },
       "step_5": {
         "title": "Banking Information",
-        "submit_endpoint": "POST /v1/application/step",
+        "submit_endpoint": "POST /api/v1/application/step",
         "next_step": 6,
         "section": "banking_info",
         "url_pattern": "/step/6/{uuid}"
       },
       "step_6": {
         "title": "Final Details",
-        "submit_endpoint": "POST /v1/application/step",
+        "submit_endpoint": "POST /api/v1/application/step",
         "section": "interest_details",
-        "completion_redirect": "/dashboard/merchant",
-        "alternative_redirect": "/c/ccbill/{uuid}"
+        "completion_redirect": "/signup/success"
       }
     }
   }

@@ -213,14 +213,12 @@ const selectedInterests = $('input[name="other_interests_capital"]:checked')
   "message": "Signup completed successfully",
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "step_count": 6,
-  "redirect": "/dashboard/merchant?landing=1"
+  "redirect": "/signup/success"
 }
 
-// Clear stored UUID after completion
-localStorage.removeItem('signup_uuid');
-
-// Redirect to Merchant Dashboard (FINAL STEP)
-window.location.href = '/dashboard/merchant?landing=1';
+// Redirect to success page
+const redirectUrl = response.redirect || '/signup/success';
+window.location.href = redirectUrl;
 ```
 
 **On Validation Error (HTTP 422)**:
@@ -262,7 +260,7 @@ Payload:
   section: interest_details
   all Step 6 fields
   uuid: {uuid}
-Response: { redirect: "/dashboard/merchant" }
+Response: { redirect: "/signup/success" }
 ```
 
 ---
