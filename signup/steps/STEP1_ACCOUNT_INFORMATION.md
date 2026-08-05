@@ -23,7 +23,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 | business_state | select | Yes | Normal dropdown (no search) - Show only if country="US", API: `/api/partner/states` |
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
-| partner_key | text | No | Optional partner API key for attribution — see skill.md → "STOP — Ask Before Writing Any Code". Ask the implementer if they have one before including it; omit entirely if not |
+| partner_key | text | No | Optional partner API key for attribution — see skill.md → "MANDATORY FIRST STEP" (top of file). Ask the implementer if they have one before including it; omit entirely if not |
 
 ---
 
@@ -89,7 +89,7 @@ Payload:
   all other Step 1 fields
   step_count: 1
   partner_key: "..." (OPTIONAL — only include if the implementer has a partner
-                API key; see skill.md → "STOP — Ask Before Writing Any Code". This is
+                API key; see skill.md → "MANDATORY FIRST STEP" (top of file). This is
                 not authentication — signup succeeds even if omitted or invalid.)
 Response: { uuid, step_count, message }
 ```

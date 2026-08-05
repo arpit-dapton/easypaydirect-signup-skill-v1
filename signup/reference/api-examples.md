@@ -8,7 +8,7 @@ Ready-to-use code examples for all API calls in the signup form.
 
 ⚠️ **None of these endpoints require authentication.** Do not send `X-API-Key` or `Authorization` headers to any dropdown or form-submission endpoint.
 
-The one exception: Step 1 accepts an **optional `partner_key` field in the payload body** (not a header) for non-blocking partner attribution. Ask the implementer whether they have a partner API key before including it — see [skill.md](../skill.md) → "STOP — Ask Before Writing Any Code".
+The one exception: Step 1 accepts an **optional `partner_key` field in the payload body** (not a header) for non-blocking partner attribution. Ask the implementer whether they have a partner API key before including it — see [skill.md](../skill.md) → "MANDATORY FIRST STEP" (top of file).
 
 ---
 
@@ -124,7 +124,7 @@ async function submitStep1(formData) {
     };
 
     // OPTIONAL: only include partner_key if the implementer has a partner API key
-    // (ask them first — see skill.md → "STOP — Ask Before Writing Any Code"). Omit the
+    // (ask them first — see skill.md → "MANDATORY FIRST STEP" (top of file)). Omit the
     // field entirely if they don't have one; do not send an empty string.
     if (formData.partnerKey) {
       payload.partner_key = formData.partnerKey;
