@@ -31,6 +31,15 @@ Continuation of [STEP2_COMPANY_INFORMATION.md](STEP2_COMPANY_INFORMATION.md) (fi
     CLEAR value
   ```
 
+**federal_tax_id Field** (Required ONLY if country="US"):
+- **Conditional Logic**:
+  ```javascript
+  IF country = "US":
+    MAKE federal_tax_id REQUIRED
+  ELSE:
+    federal_tax_id is OPTIONAL (still shown/enabled unless Canada or Sole Proprietorship — see Federal Tax ID Input Format below)
+  ```
+
 **federal_tax_id Label** (Changes based on country):
 - **If country="US"**: Label = "Federal Tax ID"
 - **If country≠"US"**: Label = "Federal Tax ID (or Corporation Tax Number equivalent)"
@@ -62,10 +71,11 @@ The `federal_tax_id` input (`id="txn_id"`, `name="federal_tax_id"`) is a **forma
 | US / Canada / Puerto Rico | `{ numericOnly: true, blocks: [3, 2, 4], delimiters: ['-', '-'] }` | `123-45-6789` |
 | All other countries | `{ numericOnly: true, blocks: [2, 7], delimiters: ['-'] }` | `12-3456789` |
 
-**Enable / disable rules** (evaluated on load and whenever `country` or `business_organized` changes):
+**Enable / disable / required rules** (evaluated on load and whenever `country` or `business_organized` changes):
 - **Sole Proprietorship** (`business_organized = "Sole-Proprietorship"`): **disable** the field, remove `required`, clear the value. Show the hint: *"Sole proprietors: You will be asked for your SSN when setting up your account."*
 - **Canada** (`country = "CA"`): **disable** the field, remove `required`, clear the value.
-- **Any other valid country + business type**: enable, mark `required`, and (re)apply the Cleave mask for that country.
+- **US** (`country = "US"`, not Sole Proprietorship): enable, mark `required` (backend requires `federal_tax_id` only for `country="US"`), and (re)apply the Cleave mask.
+- **Any other country** (not US, not Canada, not Sole Proprietorship): enable, but **do NOT mark `required`** (backend does not require `federal_tax_id` outside the US), and (re)apply the Cleave mask for that country.
 - Always **destroy the previous Cleave instance** before creating a new one (re-formatting on country change), else masks stack.
 
 **Validation** (`jquery-validate` custom method):
@@ -100,7 +110,8 @@ function manageFederalTaxId(country, businessOrganized) {
         $txnId.prop('disabled', true).removeAttr('required')
               .removeClass('is-invalid error').val('').trigger('change');
     } else {
-        $txnId.prop('disabled', false).attr('required', 'required');
+        // Required only for US — backend does not require federal_tax_id for other countries
+        $txnId.prop('disabled', false).prop('required', country === 'US');
         manageFederalTaxIdFormat(country);
     }
 }
@@ -189,24 +200,7 @@ $(document).ready(function() {
 // Redirect to Step 3 (URL pattern is a suggestion; see skill.md → URL Routing & Navigation)
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "company_name": ["Company name is required"],
-    "legal_address_street_number": ["Street number is required"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 2
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 2, display field errors, do not change URL.
 
 ---
 
@@ -217,8 +211,6 @@ for (const [field, messages] of Object.entries(response.errors)) {
 GET /api/partner/countries
 GET /api/partner/industry-types
 ```
-
-No authentication header required.
 
 **Form Submission**:
 ```
@@ -237,8 +229,8 @@ Response: { next_step_url, message }
 ## Field Summary
 
 **Total Fields**: 26 (country + business_state + annual_sales moved to Step 1)
-**Required Fields**: 21
-**Conditional Fields**: 6 (business_register_number, industry_type_other, physical address fields, subscription_frequency, subscription_frequency_other)
+**Required Fields**: 20
+**Conditional Fields**: 7 (federal_tax_id, business_register_number, industry_type_other, physical address fields, subscription_frequency, subscription_frequency_other)
 
 ---
 

@@ -52,7 +52,6 @@ $('#ownership-form').on('submit', function(e) {
     $.ajax({
         url: '/api/v1/ownership',
         type: 'POST',
-        // No auth header required
         data: formData,
         processData: false,        // ← Critical: tells jQuery to NOT process FormData
         contentType: false,        // ← Critical: lets browser set multipart/form-data
@@ -90,7 +89,7 @@ Validation sees: {first_name[1]: "value"} ← No array structure
 Error: "first_name.1 is required" (expected array, got nothing)
 ```
 
-**Correct FormData Request** (no auth header required):
+**Correct FormData Request**:
 ```
 POST /api/v1/ownership HTTP/1.1
 Content-Type: multipart/form-data; boundary=...

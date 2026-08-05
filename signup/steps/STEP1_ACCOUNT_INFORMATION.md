@@ -31,8 +31,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 
 **Field**: `country`  
 **Type**: SELECT dropdown  
-**API Endpoint**: `GET /api/partner/countries`  
-**Header**: None required (no authentication on this endpoint)
+**API Endpoint**: `GET /api/partner/countries`
 
 **Response Format**:
 ```json
@@ -77,8 +76,6 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 GET /api/partner/countries
 GET /api/partner/states
 ```
-
-No authentication header required.
 
 **Form Submission**:
 ```
@@ -130,24 +127,7 @@ Response: { uuid, step_count, message }
 // see skill.md → Guidance) and proceed to Step 2
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "first_name": ["First name is required"],
-    "email": ["Email must be a valid email"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 1
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 1, display field errors, do not change URL.
 
 ---
 
@@ -158,7 +138,3 @@ for (const [field, messages] of Object.entries(response.errors)) {
 **Conditionally Required**: 1 (business_state - required if country=US)  
 **Optional**: 2 (promo_code, partner_key)  
 **Phone Fields**: 1 (intl-tel-input)
-
----
-
-**Production Ready** ✅

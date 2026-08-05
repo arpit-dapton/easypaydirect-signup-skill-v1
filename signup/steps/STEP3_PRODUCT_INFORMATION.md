@@ -297,24 +297,7 @@ const uuid = localStorage.getItem('signup_uuid');
 window.location.href = `/signup/step/4/${uuid}`;
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "card_swiped": ["Total transaction methods must equal 100%"],
-    "describe_services": ["Description must be at least 15 characters"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 3
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 3, display field errors, do not change URL.
 
 ---
 
@@ -324,8 +307,6 @@ for (const [field, messages] of Object.entries(response.errors)) {
 ```
 GET /api/partner/shopping-carts
 ```
-
-No authentication header required.
 
 **Form Submission**:
 ```
@@ -351,7 +332,3 @@ Response: { next_step_url, message }
   - Middle section: customer_entered (auto-calculated)
   - Right handle: staff_entered position (auto-calculated)
   - Total always = 100%
-
----
-
-**Production Ready** ✅

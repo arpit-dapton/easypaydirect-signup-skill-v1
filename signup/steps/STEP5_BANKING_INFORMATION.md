@@ -79,24 +79,7 @@ if (companyCountry === "CA") { // Canada
 // (storage mechanism is the implementer's choice — see skill.md Guidance section)
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "routing_number": ["Routing number is invalid"],
-    "account_number": ["Account number is required"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 5
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 5, display field errors, do not change URL.
 
 ---
 
@@ -121,7 +104,3 @@ Response: { next_step_url, message }
 **Total Fields**: 9 (country is a Step 1 field; no account-type UI field)  
 **Required Fields**: 5  
 **Conditional Fields**: 3
-
----
-
-**Production Ready** ✅

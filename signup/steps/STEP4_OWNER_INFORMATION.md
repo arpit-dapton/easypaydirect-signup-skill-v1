@@ -226,7 +226,6 @@ $('#ownershipForm').on('submit', function(e) {
     }
     // If primary_contact=0, the visible/required inputs above are submitted as-is
 
-    // Submit form (no auth header required)
     $.ajax({
         url: '/api/v1/ownership',
         type: 'POST',

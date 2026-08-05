@@ -2,6 +2,8 @@
 
 API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATIC_REFERENCE.md](DROPDOWNS_STATIC_REFERENCE.md) for static (non-API) dropdown values, dropdown UI implementation, and conversion/testing reference.
 
+⚠️ **None of the endpoints below require an auth header** (see skill.md → Authentication).
+
 ## Contents
 - API-Based Dropdowns (Countries, States, Industry Types, Referral Sources, Shopping Carts, Interest Details)
 - Value vs Label
@@ -12,7 +14,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Countries (Step 1, Step 2, Step 4, Step 5)
 **Endpoint**: `GET /api/partner/countries`
-**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -41,7 +42,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### US States (Step 1, Step 5)
 **Endpoint**: `GET /api/partner/states`
-**Header**: None required (no authentication on this endpoint)
 **Conditional**: Show only when country = "US" (use country code/slug, not id)
 
 **Response Format**:
@@ -60,7 +60,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Industry Types (Step 2)
 **Endpoint**: `GET /api/partner/industry-types`
-**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -88,7 +87,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Referral Sources (Step 6)
 **Endpoint**: `GET /api/partner/referral-sources`
-**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -116,7 +114,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Shopping Carts / CRM (Step 3)
 **Endpoint**: `GET /api/partner/shopping-carts`
-**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -152,7 +149,6 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Interest Details (Step 6)
 **Endpoint**: `GET /api/partner/interest-details`
-**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json

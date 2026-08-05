@@ -27,8 +27,8 @@ Second step of the 6-step signup form. Collects company business details, addres
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
 | business_formed | date | Yes | YYYY-MM-DD, use date picker |
 | business_organized | select | Yes | Static (slug): Corporation, LLC, Partnership, Government, Sole-Proprietorship, Non-Profit, Other |
-| federal_tax_id | text | Yes | Encrypted, max 20 chars. Formatted input — see **Federal Tax ID Input Format** in [STEP2_COMPANY_INFORMATION_CONDITIONALS.md](STEP2_COMPANY_INFORMATION_CONDITIONALS.md). Label/format vary by Step 1 `country` |
-| business_register_number | text | Conditional | Show ONLY if Step 1 `country`≠"US" (not US), max 20 chars (11 for Canada) |
+| federal_tax_id | text | Conditional | Required ONLY if Step 1 `country`="US", max 20 chars, encrypted. Formatted input — see **Federal Tax ID Input Format** in [STEP2_COMPANY_INFORMATION_CONDITIONALS.md](STEP2_COMPANY_INFORMATION_CONDITIONALS.md). Label/format vary by Step 1 `country` |
+| business_register_number | text | Conditional | Required ONLY if Step 1 `country`≠"US" (not US), max 20 chars (11 for Canada) |
 
 **Revenue Model** (3 fields - Checkbox Array with Dependent Hierarchy):
 

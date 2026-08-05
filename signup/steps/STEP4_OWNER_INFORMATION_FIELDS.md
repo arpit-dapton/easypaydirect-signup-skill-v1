@@ -47,7 +47,6 @@ Continuation of [STEP4_OWNER_INFORMATION.md](STEP4_OWNER_INFORMATION.md) (naming
    $.ajax({
        url: '/api/v1/ownership',
        type: 'POST',
-       // No auth header required
        data: formData,
        processData: false,    // ← REQUIRED
        contentType: false,    // ← REQUIRED (lets browser send as form-data)
@@ -324,7 +323,7 @@ Same as Owner 1 with `[2]` suffix, all fields nullable.
 
 **POST `/v1/user/{dealUuid}`**
 
-**Headers**: Content-Type: application/json (no auth header required)
+**Headers**: Content-Type: application/json
 
 **Response**:
 ```json

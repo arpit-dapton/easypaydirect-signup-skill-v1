@@ -20,7 +20,7 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 | bad_experience | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
 | other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
-| accept_terms | checkbox | Yes | Required to submit, value must be 1 |
+| terms_and_conditions_agreed | checkbox | Yes | Required to submit, value must be 1 |
 
 ---
 
@@ -84,8 +84,7 @@ $('#transaction_device').val(savedValue);
 **Field**: `other_interests_capital`  
 **Type**: Checkbox array (multiple selection)  
 **Required**: No  
-**API Endpoint**: `GET /api/partner/interest-details`  
-**Headers**: None required (no authentication on this endpoint)
+**API Endpoint**: `GET /api/partner/interest-details`
 
 **Response Format** (Grouped by Interest Group):
 ```json
@@ -220,23 +219,7 @@ const redirectUrl = response.redirect || '/signup/success';
 window.location.href = redirectUrl;
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "accept_terms": ["You must accept the terms and conditions"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 6
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 6, display field errors, do not change URL.
 
 ---
 
@@ -247,8 +230,6 @@ for (const [field, messages] of Object.entries(response.errors)) {
 GET /api/partner/referral-sources
 GET /api/partner/interest-details
 ```
-
-No authentication header required.
 
 **Form Submission**:
 ```
@@ -269,7 +250,3 @@ Response: { redirect: "/signup/success" }
 **Total Fields**: 11  
 **Required Fields**: 2  
 **Conditional Fields**: 2
-
----
-
-**Production Ready** ✅

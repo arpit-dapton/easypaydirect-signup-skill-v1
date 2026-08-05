@@ -21,6 +21,12 @@ Production-ready specification for building the complete 6-step signup form.
 > 1. Enter partner key:
 > 2. Skip
 
+If they're unsure whether they have one or how to get it, share this:
+
+**If you're already a partner**: Log in to the partner portal → **Integration** → **API Integration** → copy the API key shown there → paste it here.
+
+**If you're not a partner yet**: Sign up as a partner first at https://emap.easypaydirect.com/signup/partner, then follow the same steps above (Integration → API Integration → copy the key) and come back and paste it here.
+
 Then act on their answer:
 
 | Answer | What to do |

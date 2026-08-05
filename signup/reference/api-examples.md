@@ -20,12 +20,7 @@ The one exception: Step 1 accepts an **optional `partner_key` field in the paylo
 ```javascript
 async function loadCountries() {
   try {
-    const response = await fetch('https://emap.epd.dev/api/partner/countries', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch('https://emap.epd.dev/api/partner/countries');
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -88,7 +83,7 @@ async function loadStates() {
 
 ### Load Other Dropdowns
 
-Same pattern for all dropdown endpoints — no headers required:
+Same pattern for all dropdown endpoints:
 
 ```javascript
 // Referral Sources
@@ -130,7 +125,6 @@ async function submitStep1(formData) {
       payload.partner_key = formData.partnerKey;
     }
 
-    // Submit to API (no auth header required)
     const response = await fetch('https://emap.epd.dev/api/v1/signup', {
       method: 'POST',
       headers: {
@@ -255,7 +249,6 @@ async function submitStep2(step2Data, uuid) {
     is_physical_address_same_as_legal_address: step2Data.sameAddress ? 0 : 1
   };
 
-  // No auth header required
   const response = await fetch('https://emap.epd.dev/api/v1/application/step', {
     method: 'POST',
     headers: {
@@ -278,7 +271,7 @@ async function submitStep2(step2Data, uuid) {
 
 ### Steps 3-6: Same Pattern
 
-All steps use the same endpoint, and none require an auth header:
+All steps use the same endpoint:
 
 ```javascript
 async function submitStep(stepNumber, sectionName, stepData, uuid) {
@@ -329,17 +322,17 @@ await submitStep(3, 'product_info', {
 ## Complete Flow Example
 
 ```javascript
-// 1. Step 1 - Load dropdown (no auth header)
+// 1. Step 1 - Load dropdown
 const countries = await loadCountries();
 
-// 2. Step 1 - Submit form (no auth header)
+// 2. Step 1 - Submit form
 const step1Result = await submitStep1(formData);
 // Result: returns uuid — persist it however your implementation prefers
 
-// 3. Step 2 - Load dropdowns (no auth header)
+// 3. Step 2 - Load dropdowns
 const industries = await loadIndustries();
 
-// 4. Step 2 - Submit form (no auth header)
+// 4. Step 2 - Submit form
 const step2Result = await submitStep(2, 'company_info', formData, step1Result.uuid);
 
 // ... repeat for Steps 3-6
@@ -349,28 +342,19 @@ const step2Result = await submitStep(2, 'company_info', formData, step1Result.uu
 
 ---
 
-## Error Handling Quick Reference
+## Error Handling
 
-| Status | Meaning | Action |
-|--------|---------|--------|
-| 200 | ✅ Success (every success response uses 200, never 201) | Proceed to next step |
-| 400 | Bad request | Check payload format |
-| 403 | Blocked region (Step 1 geo-check only) | Show `response.message` to the user |
-| 404 | Application/company not found for the `uuid` | `uuid` is stale/invalid — restart from Step 1 |
-| 422 | Validation error | Display field errors to user |
-| 500 | Server error | Retry or report |
-
-See [skill.md](../skill.md) → Error Handling for the exact response shapes and a worked `handleStepResponse()` example.
+See [skill.md](../skill.md) → Error Handling for status codes, response shapes, and a worked `handleStepResponse()` example.
 
 ---
 
 ## Quick Copy-Paste Template
 
 ```javascript
-// Dropdown fetch (no auth header required)
+// Dropdown fetch
 const response = await fetch('https://emap.epd.dev/api/partner/{ENDPOINT}');
 
-// Form submission (no auth header required)
+// Form submission
 const response = await fetch('https://emap.epd.dev/api/v1/{ENDPOINT}', {
   method: 'POST',
   headers: {
@@ -379,5 +363,3 @@ const response = await fetch('https://emap.epd.dev/api/v1/{ENDPOINT}', {
   body: JSON.stringify(payload)
 });
 ```
-
-Ready to copy-paste! 🎉
