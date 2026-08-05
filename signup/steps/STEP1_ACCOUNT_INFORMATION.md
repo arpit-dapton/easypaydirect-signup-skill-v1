@@ -23,6 +23,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 | business_state | select | Yes | Normal dropdown (no search) - Show only if country="US", API: `/api/partner/states` |
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
+| partner_key | text | No | Optional partner API key for attribution — see skill.md → "STOP — Ask Before Writing Any Code". Ask the implementer if they have one before including it; omit entirely if not |
 
 ---
 
@@ -31,7 +32,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 **Field**: `country`  
 **Type**: SELECT dropdown  
 **API Endpoint**: `GET /api/partner/countries`  
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -77,18 +78,20 @@ GET /api/partner/countries
 GET /api/partner/states
 ```
 
-Header: `Authorization: {user.security_key}`
+No authentication header required.
 
 **Form Submission**:
 ```
 POST /api/v1/signup
-Headers: X-API-Key: {user.security_key}
+Headers: None required.
 Payload: 
   country: "US" (use code/slug, not id)
   all other Step 1 fields
   step_count: 1
+  partner_key: "..." (OPTIONAL — only include if the implementer has a partner
+                API key; see skill.md → "STOP — Ask Before Writing Any Code". This is
+                not authentication — signup succeeds even if omitted or invalid.)
 Response: { uuid, step_count, message }
-Store UUID in localStorage for all subsequent steps
 ```
 
 ---
@@ -123,11 +126,8 @@ Store UUID in localStorage for all subsequent steps
   "step_count": 1
 }
 
-// Store UUID for all subsequent steps
-localStorage.setItem('signup_uuid', response.uuid);
-
-// Redirect to Step 2
-window.location.href = `/signup/step/2/${response.uuid}`;
+// Persist response.uuid for all subsequent steps (storage mechanism is your choice —
+// see skill.md → Guidance) and proceed to Step 2
 ```
 
 **On Validation Error (HTTP 422)**:
@@ -153,9 +153,10 @@ for (const [field, messages] of Object.entries(response.errors)) {
 
 ## Field Summary
 
-**Total Fields**: 10  
-**Required Fields**: 9 (all except promo_code)  
+**Total Fields**: 11  
+**Required Fields**: 9 (all except promo_code and partner_key)  
 **Conditionally Required**: 1 (business_state - required if country=US)  
+**Optional**: 2 (promo_code, partner_key)  
 **Phone Fields**: 1 (intl-tel-input)
 
 ---

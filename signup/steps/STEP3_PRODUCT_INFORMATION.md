@@ -325,12 +325,12 @@ for (const [field, messages] of Object.entries(response.errors)) {
 GET /api/partner/shopping-carts
 ```
 
-Header: `Authorization: {user.security_key}`
+No authentication header required.
 
 **Form Submission**:
 ```
 POST /api/v1/application/step
-Headers: X-API-Key: {user.security_key}
+Headers: None required (see skill.md → Authentication)
 Payload:
   step_count: 3
   section: product_info

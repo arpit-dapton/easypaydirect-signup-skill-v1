@@ -219,13 +219,10 @@ All dropdowns — including `country`, `business_state`, and `shopping_cart` —
 **JavaScript - Fetch & Populate**:
 ```javascript
 $(document).ready(function() {
-    const apiKey = sessionStorage.getItem('api_key');
-
-    // Fetch countries and populate the plain dropdown
+    // Fetch countries and populate the plain dropdown (no auth header required)
     $.ajax({
         url: '/api/partner/countries',
         type: 'GET',
-        headers: { 'Authorization': apiKey },
         success: function(response) {
             const select = $('#country');
             response.data.forEach(item => {
@@ -319,12 +316,8 @@ All dropdown data should be fetched on form initialization:
 
 ```javascript
 async function loadDropdownData() {
-    const apiKey = sessionStorage.getItem('api_key');
-
-    // Load countries
-    const countries = await fetch('/api/partner/countries', {
-        headers: { 'Authorization': apiKey }
-    }).then(r => r.json());
+    // Load countries (no auth header required)
+    const countries = await fetch('/api/partner/countries').then(r => r.json());
 
     // Populate select
     const select = document.querySelector('select[name="country"]');

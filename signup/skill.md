@@ -13,58 +13,76 @@ Production-ready specification for building the complete 6-step signup form.
 
 | Step | Title | File | Fields | Features |
 |------|-------|------|--------|----------|
-| 1 | Account Information | [STEP1_ACCOUNT_INFORMATION.md](steps/STEP1_ACCOUNT_INFORMATION.md) | 10 | Phone formatting, country/state selection |
+| 1 | Account Information | [STEP1_ACCOUNT_INFORMATION.md](steps/STEP1_ACCOUNT_INFORMATION.md) | 11 | Phone formatting, country/state selection, optional partner attribution |
 | 2 | Company Information | [STEP2_COMPANY_INFORMATION.md](steps/STEP2_COMPANY_INFORMATION.md) / [CONDITIONALS](steps/STEP2_COMPANY_INFORMATION_CONDITIONALS.md) | 26 | Manual address entry (legal + physical), revenue model with nested conditionals (country/state collected in Step 1) |
 | 3 | Product Information | [STEP3_PRODUCT_INFORMATION.md](steps/STEP3_PRODUCT_INFORMATION.md) | 13 | Fulfillment details, transaction slider (multiples of 5) |
 | 4 | Owner Information | [STEP4_OWNER_INFORMATION.md](steps/STEP4_OWNER_INFORMATION.md) / [FIELDS](steps/STEP4_OWNER_INFORMATION_FIELDS.md) / [IMPLEMENTATION](steps/STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) | 45+ | Primary contact, Owner 1 & conditional Owner 2, manual address entry, driver's license, financial history |
 | 5 | Banking Information | [STEP5_BANKING_INFORMATION.md](steps/STEP5_BANKING_INFORMATION.md) | 9 | Routing validation, country-specific fields |
 | 6 | Final Details | [STEP6_FINAL_DETAILS.md](steps/STEP6_FINAL_DETAILS.md) | 11 | Interest selection, terms acceptance |
 
-**Total Fields**: 114+ (10+26+13+45+9+11 across all 6 steps; Step 4 varies with conditional Owner 2)
+**Total Fields**: 115+ (11+26+13+45+9+11 across all 6 steps; Step 4 varies with conditional Owner 2)
 
 ---
 
 ## Quick Reference Files
 
 **Supporting Documentation**:
-- [specification.json](specification.json) - Machine-readable field definitions, validation rules, and dependency graph
-- [reference/DEPENDENT_FIELDS_STEP1_3.md](reference/DEPENDENT_FIELDS_STEP1_3.md) / [STEP4_6](reference/DEPENDENT_FIELDS_STEP4_6.md) - Complete conditional field logic
 - [reference/DROPDOWNS_REFERENCE.md](reference/DROPDOWNS_REFERENCE.md) / [STATIC](reference/DROPDOWNS_STATIC_REFERENCE.md) - All dropdown values (API + static)
 - [reference/api-examples.md](reference/api-examples.md) - Copy-paste JavaScript & cURL code
+
+Conditional/dependent field logic lives in each step file's own "Dependent Fields" / "Conditional Logic" section — there is no separate reference file for this; the step file is the single source of truth.
 
 ---
 
 ## Global Implementation
 
+### ⚠️ STOP — Ask Before Writing Any Code
+
+Before generating or scaffolding anything, **ask the person you're building this for**:
+
+> **"Do you have a partner API key?"**
+
+- **They say yes** → collect the key value now. When you implement Step 1's submission, include it as `partner_key` in the **Step 1 JSON payload body** (not a header), using their exact value.
+- **They say no** → do not include `partner_key` in the payload at all. Do not send an empty string, and do not skip asking just because it's optional.
+
+This is the one setup question this skill requires — ask it before Required Implementation Parameters below.
+
 ### Required Implementation Parameters
 
-Before building the form, configure these **required** parameters:
+Before building the form, configure this **required** parameter:
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | **base_url** | string | Base URL for all API endpoints |
-| **api_key** | string | Authentication key for all API requests. Retrieve this from the **Partner Dashboard** (API/Developer settings) before starting implementation |
 
 ---
 
-### Authentication Headers (CRITICAL)
+### Authentication
 
-**Form Submission (POST)**:
+⚠️ **None of these endpoints require authentication.** No header is required to submit any of the 6 steps or to fetch any dropdown data — call every endpoint listed in this skill directly with `base_url`, no key needed.
+
 ```javascript
 headers: {
     'Content-Type': 'application/json',
-    'X-API-Key': api_key,
     'Accept': 'application/json'
 }
 ```
 
-**Dropdown Data (GET)**:
-```javascript
-headers: {
-    'Authorization': api_key,
-    'Content-Type': 'application/json'
+### Partner Attribution Payload (Step 1 Only)
+
+Reference for the `partner_key` field asked about above:
+
+```json
+{
+  "first_name": "John",
+  "...": "...other Step 1 fields...",
+  "partner_key": "the-partner-api-key-value"
 }
 ```
+
+This is **not authentication** — it only attributes the signup to a partner account for commission/reporting purposes:
+- If `partner_key` is present but doesn't match any user's key, Step 1 still succeeds; the signup just isn't attributed to a partner.
+- Steps 2–6 (`/v1/application/step`, `/v1/ownership`) have no equivalent field — `partner_key` is Step 1 only.
 
 ---
 
@@ -77,7 +95,7 @@ headers: {
 | 200 | Success — **every** success response uses 200, never 201 | All |
 | 200 | ⚠️ "Company already exists" during Step 1 — `status:false` but HTTP 200 (no error code set) | Step 1 only |
 | 400 | Bad request — generic exception caught | Steps 1, 2/3/5/6 |
-| 403 | Blocked region (geo-check), or auth error | Step 1 (geo-block); auth middleware (all) |
+| 403 | Blocked region (geo-check) | Step 1 only |
 | 404 | Application or Company not found for the given `uuid` | Steps 2/3/5/6, Step 4 |
 | 422 | Validation failed | All (via FormRequest `failedValidation`) |
 | 500 | Server error — generic exception caught | Step 4 only (steps 1/2/3/5/6 use 400 for the same case) |
@@ -195,3 +213,4 @@ Fields that depend on the persisted Step 1 country:
 - [ ] Owner `license` (Step 4) is always required, all countries; `driver_license_state`/`driver_license_expiration_date` required only when owner `country="US"`, hidden otherwise
 - [ ] Page refresh resumes on the current step (not reset to Step 1)
 - [ ] 422 responses display field errors without changing step/URL
+- [ ] All 6 steps and all dropdown endpoints work with no auth header sent at all (only Step 1 optionally accepts one for partner attribution)

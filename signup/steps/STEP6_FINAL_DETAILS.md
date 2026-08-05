@@ -85,7 +85,7 @@ $('#transaction_device').val(savedValue);
 **Type**: Checkbox array (multiple selection)  
 **Required**: No  
 **API Endpoint**: `GET /api/partner/interest-details`  
-**Headers**: `Authorization: {user.security_key}`
+**Headers**: None required (no authentication on this endpoint)
 
 **Response Format** (Grouped by Interest Group):
 ```json
@@ -149,7 +149,6 @@ $.ajax({
     url: '/api/partner/interest-details',
     type: 'GET',
     headers: {
-        'Authorization': userApiKey,
         'Content-Type': 'application/json'
     },
     success: function(response) {
@@ -249,12 +248,12 @@ GET /api/partner/referral-sources
 GET /api/partner/interest-details
 ```
 
-Header: `Authorization: {user.security_key}`
+No authentication header required.
 
 **Form Submission**:
 ```
 POST /api/v1/application/step
-Headers: X-API-Key: {user.security_key}
+Headers: None required (see skill.md → Authentication)
 Payload:
   step_count: 6
   section: interest_details

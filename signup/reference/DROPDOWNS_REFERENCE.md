@@ -12,7 +12,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Countries (Step 1, Step 2, Step 4, Step 5)
 **Endpoint**: `GET /api/partner/countries`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -41,7 +41,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### US States (Step 1, Step 5)
 **Endpoint**: `GET /api/partner/states`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 **Conditional**: Show only when country = "US" (use country code/slug, not id)
 
 **Response Format**:
@@ -60,7 +60,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Industry Types (Step 2)
 **Endpoint**: `GET /api/partner/industry-types`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -88,7 +88,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Referral Sources (Step 6)
 **Endpoint**: `GET /api/partner/referral-sources`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -116,7 +116,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Shopping Carts / CRM (Step 3)
 **Endpoint**: `GET /api/partner/shopping-carts`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json
@@ -152,7 +152,7 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ### Interest Details (Step 6)
 **Endpoint**: `GET /api/partner/interest-details`
-**Header**: `Authorization: {user.security_key}`
+**Header**: None required (no authentication on this endpoint)
 
 **Response Format**:
 ```json

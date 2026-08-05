@@ -4,16 +4,11 @@ Ready-to-use code examples for all API calls in the signup form.
 
 ---
 
-## 🔑 CRITICAL: Header Differences
+## Authentication
 
-**This is the #1 mistake that causes 403/401 errors!**
+⚠️ **None of these endpoints require authentication.** Do not send `X-API-Key` or `Authorization` headers to any dropdown or form-submission endpoint.
 
-| Endpoint Type | Header | Value | Error if Wrong |
-|---|---|---|---|
-| **Dropdown Data** | `Authorization` | user.security_key | 403 (invalid key) |
-| **Form Submission** | `X-API-Key` | user.security_key | 401 (key required) |
-
-Both use the SAME value (security_key) but DIFFERENT header names!
+The one exception: Step 1 accepts an **optional `partner_key` field in the payload body** (not a header) for non-blocking partner attribution. Ask the implementer whether they have a partner API key before including it — see [skill.md](../skill.md) → "STOP — Ask Before Writing Any Code".
 
 ---
 
@@ -23,22 +18,14 @@ Both use the SAME value (security_key) but DIFFERENT header names!
 
 **JavaScript**:
 ```javascript
-const apiKey = sessionStorage.getItem('api_key');
-
 async function loadCountries() {
   try {
     const response = await fetch('https://emap.epd.dev/api/partner/countries', {
       method: 'GET',
       headers: {
-        'Authorization': apiKey,  // ← Authorization header (NOT X-API-Key!)
         'Content-Type': 'application/json'
       }
     });
-
-    if (response.status === 403) {
-      console.error('Invalid API key');
-      return [];
-    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,7 +53,6 @@ countries.forEach(country => {
 **cURL**:
 ```bash
 curl -X GET "https://emap.epd.dev/api/partner/countries" \
-  -H "Authorization: YOUR_API_KEY_HERE" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -84,12 +70,7 @@ curl -X GET "https://emap.epd.dev/api/partner/countries" \
 
 ```javascript
 async function loadIndustries() {
-  const apiKey = sessionStorage.getItem('api_key');
-  
-  const response = await fetch('https://emap.epd.dev/api/partner/industry-types', {
-    headers: { 'Authorization': apiKey }
-  });
-  
+  const response = await fetch('https://emap.epd.dev/api/partner/industry-types');
   const result = await response.json();
   return result.data;  // [{name: "Retail", slug: "retail"}, ...]
 }
@@ -99,12 +80,7 @@ async function loadIndustries() {
 
 ```javascript
 async function loadStates() {
-  const apiKey = sessionStorage.getItem('api_key');
-  
-  const response = await fetch('https://emap.epd.dev/api/partner/states', {
-    headers: { 'Authorization': apiKey }
-  });
-  
+  const response = await fetch('https://emap.epd.dev/api/partner/states');
   const result = await response.json();
   return result.data;  // [{name: "California", code: "CA"}, ...]
 }
@@ -112,23 +88,17 @@ async function loadStates() {
 
 ### Load Other Dropdowns
 
-Same pattern for all dropdown endpoints:
+Same pattern for all dropdown endpoints — no headers required:
 
 ```javascript
 // Referral Sources
-fetch('https://emap.epd.dev/api/partner/referral-sources', {
-  headers: { 'Authorization': apiKey }
-})
+fetch('https://emap.epd.dev/api/partner/referral-sources')
 
 // Shopping Carts / Transaction Devices
-fetch('https://emap.epd.dev/api/partner/shopping-carts', {
-  headers: { 'Authorization': apiKey }
-})
+fetch('https://emap.epd.dev/api/partner/shopping-carts')
 
 // Interest Details
-fetch('https://emap.epd.dev/api/partner/interest-details', {
-  headers: { 'Authorization': apiKey }
-})
+fetch('https://emap.epd.dev/api/partner/interest-details')
 ```
 
 ---
@@ -139,11 +109,8 @@ fetch('https://emap.epd.dev/api/partner/interest-details', {
 
 **JavaScript**:
 ```javascript
-const apiKey = sessionStorage.getItem('api_key');
-
 async function submitStep1(formData) {
   try {
-    // Step 1 payload - ONLY these 9 fields
     const payload = {
       first_name: formData.firstName,
       last_name: formData.lastName,
@@ -156,41 +123,41 @@ async function submitStep1(formData) {
       business_state: formData.businessState || null
     };
 
-    // Submit to API
+    // OPTIONAL: only include partner_key if the implementer has a partner API key
+    // (ask them first — see skill.md → "STOP — Ask Before Writing Any Code"). Omit the
+    // field entirely if they don't have one; do not send an empty string.
+    if (formData.partnerKey) {
+      payload.partner_key = formData.partnerKey;
+    }
+
+    // Submit to API (no auth header required)
     const response = await fetch('https://emap.epd.dev/api/v1/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,  // ← X-API-Key header (NOT Authorization!)
         'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     });
 
-    if (response.status === 201) {
+    if (response.status === 200) {
       // ✅ Success
       const result = await response.json();
       console.log('Account created!');
       console.log('UUID:', result.uuid);
-      
-      // Store UUID for future steps
-      localStorage.setItem('signup_uuid', result.uuid);
-      
+
+      // Persist the uuid for future steps (storage mechanism is your choice)
+
       // Navigate to Step 2
       window.location.href = `/step/2/${result.uuid}`;
-      
+
       return result;
-      
-    } else if (response.status === 401 || response.status === 403) {
-      // ❌ Authentication error
-      console.error('Invalid API key. Please log in again.');
-      return null;
-      
+
     } else if (response.status === 422) {
       // ❌ Validation errors
       const error = await response.json();
       console.error('Validation errors:', error.errors);
-      
+
       // Display field-level errors
       Object.entries(error.errors).forEach(([field, messages]) => {
         const input = document.querySelector(`[name="${field}"]`);
@@ -203,9 +170,9 @@ async function submitStep1(formData) {
         }
       });
       return null;
-      
+
     } else {
-      // ❌ Other error
+      // ❌ Other error (400 bad request, 403 blocked region, etc.)
       const error = await response.json();
       console.error('Error:', error.message);
       return null;
@@ -244,7 +211,6 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 ```bash
 curl -X POST "https://emap.epd.dev/api/v1/signup" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -d '{
     "first_name": "John",
     "last_name": "Doe",
@@ -254,10 +220,11 @@ curl -X POST "https://emap.epd.dev/api/v1/signup" \
     "website": "https://acme.com",
     "country": "US",
     "annual_sales": 500000,
-    "business_state": "CA"
+    "business_state": "CA",
+    "partner_key": "OPTIONAL — only if the implementer has one, omit otherwise"
   }'
 
-# Success Response (201):
+# Success Response (200):
 # {
 #   "success": true,
 #   "uuid": "550e8400-e29b-41d4-a716-446655440000",
@@ -270,10 +237,7 @@ curl -X POST "https://emap.epd.dev/api/v1/signup" \
 
 **JavaScript**:
 ```javascript
-async function submitStep2(step2Data) {
-  const apiKey = sessionStorage.getItem('api_key');
-  const uuid = localStorage.getItem('signup_uuid');
-  
+async function submitStep2(step2Data, uuid) {
   const payload = {
     step_count: 2,
     uuid: uuid,
@@ -291,11 +255,11 @@ async function submitStep2(step2Data) {
     is_physical_address_same_as_legal_address: step2Data.sameAddress ? 0 : 1
   };
 
+  // No auth header required
   const response = await fetch('https://emap.epd.dev/api/v1/application/step', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': apiKey
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
   });
@@ -314,13 +278,10 @@ async function submitStep2(step2Data) {
 
 ### Steps 3-6: Same Pattern
 
-All steps use the same endpoint and headers:
+All steps use the same endpoint, and none require an auth header:
 
 ```javascript
-async function submitStep(stepNumber, sectionName, stepData) {
-  const apiKey = sessionStorage.getItem('api_key');
-  const uuid = localStorage.getItem('signup_uuid');
-  
+async function submitStep(stepNumber, sectionName, stepData, uuid) {
   const payload = {
     step_count: stepNumber,
     uuid: uuid,
@@ -331,8 +292,7 @@ async function submitStep(stepNumber, sectionName, stepData) {
   const response = await fetch('https://emap.epd.dev/api/v1/application/step', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': apiKey
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
   });
@@ -342,7 +302,7 @@ async function submitStep(stepNumber, sectionName, stepData) {
     if (result.next_step_url) {
       window.location.href = result.next_step_url;
     } else if (result.redirect) {
-      window.location.href = result.redirect;  // Step 6 redirects to dashboard
+      window.location.href = result.redirect;  // Step 6 redirects to the success page
     }
     return result;
   } else {
@@ -361,7 +321,7 @@ await submitStep(3, 'product_info', {
   highest_transaction_amount: 1000,
   describe_services: "...",
   describe_highest_transaction: "..."
-});
+}, uuid);
 ```
 
 ---
@@ -369,25 +329,22 @@ await submitStep(3, 'product_info', {
 ## Complete Flow Example
 
 ```javascript
-// 1. After login, store API key
-sessionStorage.setItem('api_key', user.security_key);
+// 1. Step 1 - Load dropdown (no auth header)
+const countries = await loadCountries();
 
-// 2. Step 1 - Load dropdown
-const countries = await loadCountries();  // Uses Authorization header
+// 2. Step 1 - Submit form (no auth header)
+const step1Result = await submitStep1(formData);
+// Result: returns uuid — persist it however your implementation prefers
 
-// 3. Step 1 - Submit form
-const step1Result = await submitStep1(formData);  // Uses X-API-Key header
-// Result: returns UUID, stored in localStorage
+// 3. Step 2 - Load dropdowns (no auth header)
+const industries = await loadIndustries();
 
-// 4. Step 2 - Load dropdowns
-const industries = await loadIndustries();  // Uses Authorization header
-
-// 5. Step 2 - Submit form
-const step2Result = await submitStep(2, 'company_info', formData);  // Uses X-API-Key
+// 4. Step 2 - Submit form (no auth header)
+const step2Result = await submitStep(2, 'company_info', formData, step1Result.uuid);
 
 // ... repeat for Steps 3-6
 
-// Final: Step 6 redirects to dashboard
+// Final: Step 6 redirects to the success page
 ```
 
 ---
@@ -396,29 +353,28 @@ const step2Result = await submitStep(2, 'company_info', formData);  // Uses X-AP
 
 | Status | Meaning | Action |
 |--------|---------|--------|
-| 200/201 | ✅ Success | Proceed to next step |
+| 200 | ✅ Success (every success response uses 200, never 201) | Proceed to next step |
 | 400 | Bad request | Check payload format |
-| 401 | ❌ Auth error | Check X-API-Key header for form submission |
-| 403 | ❌ Auth error | Check Authorization header for dropdowns |
+| 403 | Blocked region (Step 1 geo-check only) | Show `response.message` to the user |
+| 404 | Application/company not found for the `uuid` | `uuid` is stale/invalid — restart from Step 1 |
 | 422 | Validation error | Display field errors to user |
 | 500 | Server error | Retry or report |
+
+See [skill.md](../skill.md) → Error Handling for the exact response shapes and a worked `handleStepResponse()` example.
 
 ---
 
 ## Quick Copy-Paste Template
 
 ```javascript
-// Dropdown fetch
-const response = await fetch('https://emap.epd.dev/api/partner/{ENDPOINT}', {
-  headers: { 'Authorization': sessionStorage.getItem('api_key') }
-});
+// Dropdown fetch (no auth header required)
+const response = await fetch('https://emap.epd.dev/api/partner/{ENDPOINT}');
 
-// Form submission
+// Form submission (no auth header required)
 const response = await fetch('https://emap.epd.dev/api/v1/{ENDPOINT}', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': sessionStorage.getItem('api_key')
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify(payload)
 });

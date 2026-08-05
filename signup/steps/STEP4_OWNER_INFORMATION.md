@@ -76,7 +76,7 @@ contentType: 'application/json'            // ❌
 
 **POST `/api/v1/ownership`**
 
-**Authentication**: X-API-Key header (from Step 1)
+**Authentication**: None required (see skill.md → Authentication)
 
 **Content-Type**: application/x-www-form-urlencoded (FormData automatically sets this)
 
@@ -84,17 +84,15 @@ contentType: 'application/json'            // ❌
 
 ## Date Picker Fields
 
-Step 4 has three date fields for each owner (Owner 1 and Owner 2). All must use date picker with format YYYY-MM-DD.
+Step 4 has three date fields per owner (Owner 1 and Owner 2), each identified by `[1]`/`[2]` suffix. All use the same Flatpickr pattern — only the date-direction constraint and required condition differ:
 
-### 1. Date of Birth (dob)
+| Field | Required | Date constraint |
+|-------|----------|------------------|
+| `dob[1]`, `dob[2]` | Yes | `maxDate: new Date()` — must be a past date, not today/future |
+| `driver_license_expiration_date[1]`, `[2]` | Yes, only if owner `country=US` | `minDate: new Date()` — must be today or future, not past |
+| `bankruptcy_discharged_date[1]`, `[2]` | Conditional, only if `bankruptcy_discharged=1` | `maxDate: new Date()` — must be a past date, not today/future |
 
-**Field**: `dob[1]`, `dob[2]`
-**Type**: DATE input with picker
-**Format**: YYYY-MM-DD
-**Required**: Yes
-**Validation**: Must be a valid past date (cannot be today or future)
-
-**HTML**:
+**HTML** (repeat per field, swapping `id`/`name`):
 ```html
 <div class="form-group">
     <label for="dob_1">Date of Birth (Owner 1)</label>
@@ -102,52 +100,17 @@ Step 4 has three date fields for each owner (Owner 1 and Owner 2). All must use 
 </div>
 ```
 
-**JavaScript (Flatpickr)**:
+**JavaScript (Flatpickr)** — swap `minDate`/`maxDate` per the table above:
 ```javascript
 flatpickr('#dob_1', {
     mode: 'single',
     format: 'Y-m-d',
-    maxDate: new Date(), // Cannot be today or future
+    maxDate: new Date(), // or minDate, per field — see table above
     placeholder: 'YYYY-MM-DD'
 });
 ```
 
-### 2. Driver License Expiration Date
-
-**Field**: `driver_license_expiration_date[1]`, `driver_license_expiration_date[2]`
-**Type**: DATE input with picker
-**Format**: YYYY-MM-DD
-**Required**: Yes (only if country=US)
-**Validation**: Must be today or in the future (cannot be past date)
-
-**HTML**:
-```html
-<div class="form-group">
-    <label for="driver_license_expiration_date_1">Driver License Expiration (Owner 1)</label>
-    <input type="date" id="driver_license_expiration_date_1"
-           name="driver_license_expiration_date[1]" class="form-control">
-</div>
-```
-
-**JavaScript (Flatpickr)**:
-```javascript
-flatpickr('#driver_license_expiration_date_1', {
-    mode: 'single',
-    format: 'Y-m-d',
-    minDate: new Date(), // Cannot be in the past
-    placeholder: 'YYYY-MM-DD'
-});
-```
-
-### 3. Bankruptcy Discharge Date
-
-**Field**: `bankruptcy_discharged_date[1]`, `bankruptcy_discharged_date[2]`
-**Type**: DATE input with picker
-**Format**: YYYY-MM-DD
-**Required**: Conditional (only if bankruptcy_discharged=1)
-**Validation**: Must be a valid past date (cannot be today or future)
-
-**HTML**:
+**Bankruptcy Discharge Date is also conditionally visible** (hidden until `bankruptcy_discharged=1`):
 ```html
 <div class="form-group" id="bankruptcy_discharged_date_wrapper" style="display: none;">
     <label for="bankruptcy_discharged_date_1">Bankruptcy Discharge Date (Owner 1)</label>
@@ -155,8 +118,6 @@ flatpickr('#driver_license_expiration_date_1', {
            name="bankruptcy_discharged_date[1]" class="form-control">
 </div>
 ```
-
-**Show/Hide Logic**:
 ```javascript
 // Show this field only when bankruptcy_discharged[1] = 1
 $('input[name="bankruptcy_discharged[1]"]').on('change', function() {
@@ -165,16 +126,6 @@ $('input[name="bankruptcy_discharged[1]"]').on('change', function() {
     } else {
         $('#bankruptcy_discharged_date_wrapper').hide().val('');
     }
-});
-```
-
-**JavaScript (Flatpickr)**:
-```javascript
-flatpickr('#bankruptcy_discharged_date_1', {
-    mode: 'single',
-    format: 'Y-m-d',
-    maxDate: new Date(), // Cannot be today or future
-    placeholder: 'YYYY-MM-DD'
 });
 ```
 
@@ -275,11 +226,10 @@ $('#ownershipForm').on('submit', function(e) {
     }
     // If primary_contact=0, the visible/required inputs above are submitted as-is
 
-    // Submit form
+    // Submit form (no auth header required)
     $.ajax({
         url: '/api/v1/ownership',
         type: 'POST',
-        headers: { 'X-API-Key': apiKey },
         data: formData,
         processData: false,
         contentType: false,

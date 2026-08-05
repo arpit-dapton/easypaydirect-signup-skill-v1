@@ -30,7 +30,6 @@ $('#ownership-form').on('submit', function(e) {
     e.preventDefault();
 
     const uuid = getSignupUuid();  // however the implementation stores it
-    const apiKey = getApiKey();
 
     // ✅ CORRECT: Use FormData to send as application/x-www-form-urlencoded
     const formData = new FormData(this);
@@ -53,7 +52,7 @@ $('#ownership-form').on('submit', function(e) {
     $.ajax({
         url: '/api/v1/ownership',
         type: 'POST',
-        headers: { 'X-API-Key': apiKey },
+        // No auth header required
         data: formData,
         processData: false,        // ← Critical: tells jQuery to NOT process FormData
         contentType: false,        // ← Critical: lets browser set multipart/form-data
@@ -81,7 +80,6 @@ $('#ownership-form').on('submit', function(e) {
 $.ajax({
     url: '/api/v1/ownership',
     type: 'POST',
-    headers: { 'X-API-Key': apiKey },
     contentType: 'application/json',     // ❌ WRONG
     data: JSON.stringify(formData),      // ❌ WRONG
     ...
@@ -92,11 +90,10 @@ Validation sees: {first_name[1]: "value"} ← No array structure
 Error: "first_name.1 is required" (expected array, got nothing)
 ```
 
-**Correct FormData Request**:
+**Correct FormData Request** (no auth header required):
 ```
 POST /api/v1/ownership HTTP/1.1
 Content-Type: multipart/form-data; boundary=...
-X-API-Key: user-api-key
 
 --boundary
 Content-Disposition: form-data; name="first_name[1]"
