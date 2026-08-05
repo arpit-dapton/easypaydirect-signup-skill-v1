@@ -18,7 +18,7 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 | multiple_merchant_accounts | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | **transaction_device** | **select** | **No** | **Normal dropdown (no search) - Hardcoded Static Options** - See details below |
 | bad_experience | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
-| bad_experience_provider | text | Conditional | Show if bad_experience=1, max 300 chars |
+| bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
 | other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
 | accept_terms | checkbox | Yes | Required to submit, value must be 1 |
 
@@ -198,7 +198,7 @@ const selectedInterests = $('input[name="other_interests_capital"]:checked')
 ⚠️ **All conditional fields MUST be hidden on page load** (`style="display: none;"`).
 
 - **howdidyouhear_other**: Show if howdidyouhear="Other" or "Friend"
-- **bad_experience_provider**: Show if bad_experience=1
+- **bad_experience_happened**: Show if bad_experience=1
 
 ---
 
