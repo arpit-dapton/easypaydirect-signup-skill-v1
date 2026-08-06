@@ -1,4 +1,4 @@
-# Claude Code Skills
+# Singup Form Skills
 
 Professional, reusable skills and specifications for AI code generation.
 
