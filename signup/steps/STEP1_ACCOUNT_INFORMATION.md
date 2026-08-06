@@ -19,10 +19,11 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 | phone | tel | Yes | Use intl-tel-input library |
 | name | text | Yes | Company name, max 60 chars |
 | website | url | Yes | Valid URL or social media profile |
-| country | select | Yes | **SEARCHABLE** - API: `/api/partner/countries` with live search |
-| business_state | select | Yes | **SEARCHABLE** - Show only if country="US", API: `/api/partner/states` with live search |
+| country | select | Yes | Normal dropdown (no search) - API: `/api/partner/countries` |
+| business_state | select | Yes | Normal dropdown (no search) - Show only if country="US", API: `/api/partner/states` |
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
+| partner_key | text | No | Optional partner API key for attribution — see skill.md → "MANDATORY FIRST STEP" (top of file). Ask the implementer if they have one before including it; omit entirely if not |
 
 ---
 
@@ -30,8 +31,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 
 **Field**: `country`  
 **Type**: SELECT dropdown  
-**API Endpoint**: `GET /api/partner/countries`  
-**Header**: `Authorization: {user.security_key}`
+**API Endpoint**: `GET /api/partner/countries`
 
 **Response Format**:
 ```json
@@ -77,18 +77,18 @@ GET /api/partner/countries
 GET /api/partner/states
 ```
 
-Header: `Authorization: {user.security_key}`
-
 **Form Submission**:
 ```
 POST /api/v1/signup
-Headers: X-API-Key: {user.security_key}
+Headers: None required.
 Payload: 
   country: "US" (use code/slug, not id)
   all other Step 1 fields
   step_count: 1
+  partner_key: "..." (OPTIONAL — only include if the implementer has a partner
+                API key; see skill.md → "MANDATORY FIRST STEP" (top of file). This is
+                not authentication — signup succeeds even if omitted or invalid.)
 Response: { uuid, step_count, message }
-Store UUID in localStorage for all subsequent steps
 ```
 
 ---
@@ -123,41 +123,18 @@ Store UUID in localStorage for all subsequent steps
   "step_count": 1
 }
 
-// Store UUID for all subsequent steps
-localStorage.setItem('signup_uuid', response.uuid);
-
-// Redirect to Step 2
-window.location.href = `/signup/step/2/${response.uuid}`;
+// Persist response.uuid for all subsequent steps (storage mechanism is your choice —
+// see skill.md → Guidance) and proceed to Step 2
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "first_name": ["First name is required"],
-    "email": ["Email must be a valid email"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 1
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 1, display field errors, do not change URL.
 
 ---
 
 ## Field Summary
 
-**Total Fields**: 10  
-**Required Fields**: 9 (all except promo_code)  
+**Total Fields**: 11  
+**Required Fields**: 9 (all except promo_code and partner_key)  
 **Conditionally Required**: 1 (business_state - required if country=US)  
+**Optional**: 2 (promo_code, partner_key)  
 **Phone Fields**: 1 (intl-tel-input)
-
----
-
-**Production Ready** ✅

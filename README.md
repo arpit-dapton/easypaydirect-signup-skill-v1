@@ -8,32 +8,30 @@ Professional, reusable skills and specifications for AI code generation.
 
 **Location**: `./signup/`
 
-A comprehensive skill for creating a merchant signup form with 6 steps, 59 fields, dynamic behaviors, and complete API integration.
+A comprehensive skill for creating a merchant signup form with 6 steps, 115+ fields, dynamic behaviors, and complete API integration.
 
-### ⭐ Main Skill Files
+### ⭐ Main Skill File
 
-These are the **PRIMARY FILES** to use:
+- **`skill.md`** - Navigation hub: form overview, required implementation parameters, authentication, error handling, cross-step guidance, and testing checklist. Links directly to every other file below.
 
-1. **`skill.md`** (26KB) - Complete form specification
-   - All 6 steps with detailed field documentation
-   - 10+ dynamic field behaviors
-   - Validation rules and auto-save strategy
-   - Best practices and design principles
+### 📚 Per-Step Documentation
 
-2. **`specification.json`** (32KB) - Machine-readable specification
-   - Exact field definitions and types
-   - API endpoint mappings
-   - Validation rules with regex patterns
-   - Dependency graph for dynamic fields
+`steps/` — one file per step (dependent-field logic lives inline in each step file, not in a separate reference):
+
+- `STEP1_ACCOUNT_INFORMATION.md`
+- `STEP2_COMPANY_INFORMATION.md` / `STEP2_COMPANY_INFORMATION_CONDITIONALS.md`
+- `STEP3_PRODUCT_INFORMATION.md`
+- `STEP4_OWNER_INFORMATION.md` / `_FIELDS.md` / `_IMPLEMENTATION.md`
+- `STEP5_BANKING_INFORMATION.md`
+- `STEP6_FINAL_DETAILS.md`
 
 ### 📚 Reference Documentation
 
-Additional resources in `reference/` folder:
+`reference/`:
 
-- `quick-start.md` - Quick reference guide for all fields
-- `api-integration.md` - Implementation patterns and examples
-- `implementation-summary.md` - API changes and checklist
-- `creation-notes.md` - Historical creation summary
+- `DROPDOWNS_REFERENCE.md` - API-backed dropdown values (countries, states, industry types, referral sources, shopping carts, interests)
+- `DROPDOWNS_STATIC_REFERENCE.md` - Static dropdown values, plain-dropdown implementation, conversion reference, testing checklist
+- `api-examples.md` - Copy-paste JavaScript & cURL code
 
 ---
 
@@ -41,24 +39,19 @@ Additional resources in `reference/` folder:
 
 ### For AI Code Generation (Recommended)
 
-Share the **main skill files** with AI:
+Share the main skill file with AI — it links to everything else needed:
 
 ```
-"Generate the signup form using these specifications:
-1. .claude/skills/signup/skill.md
-2. .claude/skills/signup/specification.json
-
-Also reference:
-3. .claude/skills/signup/reference/api-integration.md
-   (for implementation patterns)"
+"Generate the signup form using this specification:
+.claude/skills/signup/skill.md"
 ```
 
 ### For Developer Reference
 
-1. Read `skill.md` for complete understanding
-2. Use `specification.json` for exact field definitions
-3. Review `reference/api-integration.md` for implementation patterns
-4. Use `reference/quick-start.md` for quick lookup
+1. Read `skill.md` for the overview, auth, error handling, and cross-step guidance
+2. Follow its links to the specific step file(s) you're implementing
+3. Use `reference/api-examples.md` for copy-paste request code
+4. Use `reference/DROPDOWNS_REFERENCE.md` / `DROPDOWNS_STATIC_REFERENCE.md` for dropdown values
 
 ---
 
@@ -69,28 +62,27 @@ skills/
 ├── README.md ................................. This file (index)
 │
 └── signup/ ................................... Signup form skill
-    ├── skill.md ............................. ⭐ MAIN: Complete specification
-    ├── specification.json .................. ⭐ MAIN: Machine-readable spec
+    ├── skill.md ............................. ⭐ MAIN: Navigation hub & specification
+    │
+    ├── steps/ ............................... Per-step field documentation (Steps 1-6)
     │
     └── reference/ .......................... Supporting documentation
-        ├── quick-start.md
-        ├── api-integration.md
-        ├── implementation-summary.md
-        └── creation-notes.md
+        ├── DROPDOWNS_REFERENCE.md
+        ├── DROPDOWNS_STATIC_REFERENCE.md
+        └── api-examples.md
 ```
 
-**Key**: Files at skill root are MAIN. Files in reference/ are supporting.
+**Key**: `skill.md` is the single navigation hub — every other file is linked directly from it, one level deep. There is no separate machine-readable spec or dependent-fields reference; those were removed as duplicates of what's already in the step files (see `skill.md`'s git history if you need the old JSON spec).
 
 ---
 
 ## ✨ Signup Skill Features
 
-✅ **Complete Coverage**: 6 steps, 59 fields  
-✅ **Dynamic Fields**: 10+ conditional behaviors  
-✅ **API Integration**: 6 endpoints documented  
+✅ **Complete Coverage**: 6 steps, 115+ fields  
+✅ **Dynamic Fields**: Conditional show/hide behaviors documented per step  
+✅ **API Integration**: 6 dropdown endpoints + 3 form-submission endpoints documented  
 ✅ **Validation**: All rules specified  
-✅ **Best Practices**: Industry-standard patterns  
-✅ **Two Formats**: Markdown + JSON
+✅ **No Auth Required**: Only Step 1 accepts an optional, non-blocking partner-attribution field
 
 **API Endpoints**:
 - `GET /api/partner/countries`
@@ -109,10 +101,8 @@ To add a new skill, follow this structure:
 ```
 skills/
 └── {skill-name}/
-    ├── skill.md ............................ Main specification
-    ├── specification.json ................. Machine-readable spec
+    ├── skill.md ............................ Main specification & navigation hub
     └── reference/
-        ├── quick-start.md
         ├── {feature}-guide.md
         └── notes.md
 ```
@@ -125,19 +115,16 @@ Then update this README with the new skill.
 
 | Skill | Status | Files |
 |-------|--------|-------|
-| Signup Form | ✅ Ready | skill.md, specification.json |
+| Signup Form | ✅ Ready | skill.md |
 
 ---
 
 ## 📞 Support
 
 **Main specification**: `./signup/skill.md`  
-**Field definitions**: `./signup/specification.json`  
-**API docs**: `./signup/reference/api-integration.md`  
-**Quick lookup**: `./signup/reference/quick-start.md`
+**API docs**: `./signup/reference/api-examples.md`
 
 ---
 
 **Status**: ✅ Production Ready  
-**Total Size**: ~106KB  
-**Last Updated**: 2025-07-15
+**Last Updated**: 2026-08-05

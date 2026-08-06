@@ -18,9 +18,9 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 | multiple_merchant_accounts | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | **transaction_device** | **select** | **No** | **Normal dropdown (no search) - Hardcoded Static Options** - See details below |
 | bad_experience | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
-| bad_experience_provider | text | Conditional | Show if bad_experience=1, max 300 chars |
+| bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
 | other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
-| accept_terms | checkbox | Yes | Required to submit, value must be 1 |
+| terms_and_conditions_agreed | checkbox | Yes | Required to submit, value must be 1 |
 
 ---
 
@@ -84,8 +84,7 @@ $('#transaction_device').val(savedValue);
 **Field**: `other_interests_capital`  
 **Type**: Checkbox array (multiple selection)  
 **Required**: No  
-**API Endpoint**: `GET /api/partner/interest-details`  
-**Headers**: `Authorization: {user.security_key}`
+**API Endpoint**: `GET /api/partner/interest-details`
 
 **Response Format** (Grouped by Interest Group):
 ```json
@@ -149,7 +148,6 @@ $.ajax({
     url: '/api/partner/interest-details',
     type: 'GET',
     headers: {
-        'Authorization': userApiKey,
         'Content-Type': 'application/json'
     },
     success: function(response) {
@@ -199,7 +197,7 @@ const selectedInterests = $('input[name="other_interests_capital"]:checked')
 ⚠️ **All conditional fields MUST be hidden on page load** (`style="display: none;"`).
 
 - **howdidyouhear_other**: Show if howdidyouhear="Other" or "Friend"
-- **bad_experience_provider**: Show if bad_experience=1
+- **bad_experience_happened**: Show if bad_experience=1
 
 ---
 
@@ -213,33 +211,15 @@ const selectedInterests = $('input[name="other_interests_capital"]:checked')
   "message": "Signup completed successfully",
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "step_count": 6,
-  "redirect": "/dashboard/merchant?landing=1"
+  "redirect": "/signup/success"
 }
 
-// Clear stored UUID after completion
-localStorage.removeItem('signup_uuid');
-
-// Redirect to Merchant Dashboard (FINAL STEP)
-window.location.href = '/dashboard/merchant?landing=1';
+// Redirect to success page
+const redirectUrl = response.redirect || '/signup/success';
+window.location.href = redirectUrl;
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "accept_terms": ["You must accept the terms and conditions"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 6
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 6, display field errors, do not change URL.
 
 ---
 
@@ -251,18 +231,16 @@ GET /api/partner/referral-sources
 GET /api/partner/interest-details
 ```
 
-Header: `Authorization: {user.security_key}`
-
 **Form Submission**:
 ```
 POST /api/v1/application/step
-Headers: X-API-Key: {user.security_key}
+Headers: None required (see skill.md → Authentication)
 Payload:
   step_count: 6
   section: interest_details
   all Step 6 fields
   uuid: {uuid}
-Response: { redirect: "/dashboard/merchant" }
+Response: { redirect: "/signup/success" }
 ```
 
 ---
@@ -272,7 +250,3 @@ Response: { redirect: "/dashboard/merchant" }
 **Total Fields**: 11  
 **Required Fields**: 2  
 **Conditional Fields**: 2
-
----
-
-**Production Ready** ✅

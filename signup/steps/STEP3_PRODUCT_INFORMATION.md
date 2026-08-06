@@ -19,7 +19,7 @@ Third step of the 6-step signup form. Collects product fulfillment details, tran
 | refund_policy | select | Yes | Normal dropdown (no search) - Static (slug): Full-Refund, No-Refund, Exchange-Only, Partial-Refund |
 | fulfillment_by | select | Yes | Normal dropdown (no search) - Static (slug): Direct-By-You, Service-Only, Vendor, Others |
 | fullfillment_company | text | Conditional | Show if fulfillment_by="Vendor" or "Others" |
-| shopping_cart | select | Yes | **SEARCHABLE** - API: `/api/partner/shopping-carts` with live search |
+| shopping_cart | select | Yes | Normal dropdown (no search) - API: `/api/partner/shopping-carts` |
 | shopping_cart_other | text | Conditional | Show if shopping_cart="Other" or "API / Custom Integration" |
 | leave_deposit | select | Yes | Options: Yes(1), No(0) |
 
@@ -297,24 +297,7 @@ const uuid = localStorage.getItem('signup_uuid');
 window.location.href = `/signup/step/4/${uuid}`;
 ```
 
-**On Validation Error (HTTP 422)**:
-```javascript
-// Response example:
-{
-  "status": false,
-  "message": "Validation failed",
-  "errors": {
-    "card_swiped": ["Total transaction methods must equal 100%"],
-    "describe_services": ["Description must be at least 15 characters"]
-  }
-}
-
-// Display field errors
-// DO NOT change URL - user stays on Step 3
-for (const [field, messages] of Object.entries(response.errors)) {
-  displayErrorForField(field, messages[0]);
-}
-```
+**On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 3, display field errors, do not change URL.
 
 ---
 
@@ -325,12 +308,10 @@ for (const [field, messages] of Object.entries(response.errors)) {
 GET /api/partner/shopping-carts
 ```
 
-Header: `Authorization: {user.security_key}`
-
 **Form Submission**:
 ```
 POST /api/v1/application/step
-Headers: X-API-Key: {user.security_key}
+Headers: None required (see skill.md → Authentication)
 Payload:
   step_count: 3
   section: product_info
@@ -351,7 +332,3 @@ Response: { next_step_url, message }
   - Middle section: customer_entered (auto-calculated)
   - Right handle: staff_entered position (auto-calculated)
   - Total always = 100%
-
----
-
-**Production Ready** ✅
