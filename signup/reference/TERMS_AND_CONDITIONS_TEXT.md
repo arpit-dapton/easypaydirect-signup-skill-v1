@@ -4,10 +4,9 @@ Full text shown to the merchant in the read-only textarea on Step 6, directly ab
 `terms_and_conditions_agreed` checkbox. See [../steps/STEP6_FINAL_DETAILS.md](../steps/STEP6_FINAL_DETAILS.md)
 for how/where this is rendered.
 
-**Source of truth**: `resources/views/client/partial/terms.blade.php` (rendered in the legacy flow via
-`@include('client.partial.terms')`). If that file changes, update the copy below to match — this file
-is a snapshot, not a live include, so an implementer without access to the codebase still has the
-exact text to work from.
+This is a point-in-time snapshot of the official Terms & Conditions text, kept here so an implementer
+has the exact wording to work from without needing access to any other source. If the official text
+changes, update the copy below to match.
 
 This is plain display text — render it as-is inside the textarea, preserving line breaks and blank
 lines between sections. Do not reformat, summarize, or otherwise alter the wording.

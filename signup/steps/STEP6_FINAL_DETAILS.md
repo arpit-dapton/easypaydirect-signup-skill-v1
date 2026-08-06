@@ -29,7 +29,7 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 
 Directly **above** the `terms_and_conditions_agreed` checkbox, render a read-only/disabled textarea showing the full Terms & Conditions text so the merchant can read it before agreeing.
 
-**Content source**: The legacy flow renders this via `@include('client.partial.terms')`. The exact text to display is captured in [../reference/TERMS_AND_CONDITIONS_TEXT.md](../reference/TERMS_AND_CONDITIONS_TEXT.md) — use that file as the content source when implementing outside this codebase.
+**Content source**: The exact text to display is captured in [../reference/TERMS_AND_CONDITIONS_TEXT.md](../reference/TERMS_AND_CONDITIONS_TEXT.md) — use that file as the content source.
 
 ⚠️ **This field is display-only — it must NOT be included in the `/api/v1/application/step` payload.** Use `disabled` (not just `readonly`) so the browser excludes it from form submission automatically; if you use `readonly` instead, you must explicitly omit it from the request before sending.
 
