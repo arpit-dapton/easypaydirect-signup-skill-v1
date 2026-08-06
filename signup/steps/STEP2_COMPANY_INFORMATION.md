@@ -22,7 +22,7 @@ Second step of the 6-step signup form. Collects company business details, addres
 | legal_name | text | Yes | Max 60 chars. **Pre-fill from Step 1 `name` field** |
 | name | text | Yes | DBA name, max 60 chars. **Pre-fill from Step 1 `name` field** |
 | industry_type | select | Yes | Normal dropdown (no search) - API: `/api/partner/industry-types` |
-| industry_type_other | text | Conditional | Show if industry_type="other", max 255 chars |
+| industry_type_other | text | Conditional | Show if industry_type="Other" (capital "O" — matches API slug), max 255 chars |
 | customer_service_telephone_number | tel | Yes | Use intl-tel-input |
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
 | business_formed | date | Yes | YYYY-MM-DD, use date picker |

@@ -13,11 +13,11 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| howdidyouhear | select | No | Normal dropdown (no search) - API: `/api/partner/referral-sources` |
+| howdidyouhear | select | Yes | Normal dropdown (no search) - API: `/api/partner/referral-sources` |
 | howdidyouhear_other | text | Conditional | Show if howdidyouhear="Other" or "Friend", max 300 chars |
-| multiple_merchant_accounts | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
+| multiple_merchant_accounts | select | Yes | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | **transaction_device** | **select** | **No** | **Normal dropdown (no search) - Hardcoded Static Options** - See details below |
-| bad_experience | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
+| bad_experience | select | Yes | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
 | other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
 | terms_and_conditions_agreed | checkbox | Yes | Required to submit, value must be 1 |
@@ -248,5 +248,5 @@ Response: { redirect: "/signup/success" }
 ## Field Summary
 
 **Total Fields**: 11  
-**Required Fields**: 2  
+**Required Fields**: 4  
 **Conditional Fields**: 2
