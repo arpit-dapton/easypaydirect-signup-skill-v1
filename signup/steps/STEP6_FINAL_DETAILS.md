@@ -13,14 +13,54 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| howdidyouhear | select | No | Normal dropdown (no search) - API: `/api/partner/referral-sources` |
+| howdidyouhear | select | Yes | Normal dropdown (no search) - API: `/api/partner/referral-sources` |
 | howdidyouhear_other | text | Conditional | Show if howdidyouhear="Other" or "Friend", max 300 chars |
-| multiple_merchant_accounts | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
+| multiple_merchant_accounts | select | Yes | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | **transaction_device** | **select** | **No** | **Normal dropdown (no search) - Hardcoded Static Options** - See details below |
-| bad_experience | select | No | Normal dropdown (no search) - Static: Yes(1), No(0) |
+| bad_experience | select | Yes | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
 | other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
+| **terms_and_conditions_text** | **textarea** | **N/A — display only** | **Read-only/disabled, not submitted to the API** — See "Terms & Conditions Display" below |
 | terms_and_conditions_agreed | checkbox | Yes | Required to submit, value must be 1 |
+
+---
+
+## Terms & Conditions Display (Read-Only Textarea)
+
+Directly **above** the `terms_and_conditions_agreed` checkbox, render a read-only/disabled textarea showing the full Terms & Conditions text so the merchant can read it before agreeing.
+
+**Content source**: The exact text to display is captured in [../reference/TERMS_AND_CONDITIONS_TEXT.md](../reference/TERMS_AND_CONDITIONS_TEXT.md) — use that file as the content source.
+
+⚠️ **This field is display-only — it must NOT be included in the `/api/v1/application/step` payload.** Use `disabled` (not just `readonly`) so the browser excludes it from form submission automatically; if you use `readonly` instead, you must explicitly omit it from the request before sending.
+
+**HTML**:
+```html
+<div class="form-group">
+    <label for="terms_and_conditions_text">Terms and Conditions</label>
+    <textarea id="terms_and_conditions_text"
+              class="form-control"
+              rows="10"
+              disabled>{{-- content from reference/TERMS_AND_CONDITIONS_TEXT.md --}}</textarea>
+</div>
+
+<!-- terms_and_conditions_agreed checkbox follows immediately after -->
+<div class="form-check">
+    <input type="checkbox" name="terms_and_conditions_agreed" id="terms_and_conditions_agreed"
+           value="1" class="form-check-input" required>
+    <label class="form-check-label" for="terms_and_conditions_agreed">
+        I have read and agree to the Terms and Conditions
+    </label>
+</div>
+```
+
+**Form Submission**:
+```javascript
+// terms_and_conditions_text has no `name` attribute and is `disabled`,
+// so FormData never includes it — no manual exclusion needed.
+// If it were built with `readonly` and a `name` attribute instead, it would
+// have to be explicitly deleted before submit, e.g.:
+// formData.delete('terms_and_conditions_text');
+```
 
 ---
 
@@ -248,5 +288,5 @@ Response: { redirect: "/signup/success" }
 ## Field Summary
 
 **Total Fields**: 11  
-**Required Fields**: 2  
+**Required Fields**: 4  
 **Conditional Fields**: 2

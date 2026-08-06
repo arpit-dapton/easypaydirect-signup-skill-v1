@@ -136,7 +136,7 @@ step_count=4
 | title | select | title[1] | required | **Use slug values**: CEO, CFO, Chairman, Co-owner, Controller, Director, General-Manager, Office-Manager, Owner, Partner, President, Treasurer, Vice-President, Other |
 | ssn | text | ssn[1] | required | **Format: XXX-XX-XXXX** (9 digits with dashes), NOT masked in input |
 | dob | date | dob[1] | required | YYYY-MM-DD format |
-| ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51% |
+| ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51%. If Owner 2 is present, `ownership_percentage[1] + ownership_percentage[2]` must not exceed 100 |
 
 ### SSN Input - Social Security Number
 
@@ -279,6 +279,7 @@ Same as Owner 1 with `[2]` suffix, all fields nullable.
 
 - If `primary_contact=0`: `primary_contact_job_title` required
 - If `ownership_percentage.1 < 51`: Owner 2 fields required (if first_name[2] filled)
+- **If Owner 2 is present**: `ownership_percentage[1] + ownership_percentage[2]` must not exceed 100. Validate this client-side as the user types (e.g. cap Owner 2's max input at `100 - ownership_percentage[1]`) as well as on submit.
 - `license` is required for all countries; if `country=US`: `driver_license_state` and `driver_license_expiration_date` are also required (hidden for every other country)
 - If `bankruptcy_discharged=1`: `bankruptcy_discharged_date` required
 

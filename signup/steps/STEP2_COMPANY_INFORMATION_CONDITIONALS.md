@@ -46,10 +46,10 @@ Continuation of [STEP2_COMPANY_INFORMATION.md](STEP2_COMPANY_INFORMATION.md) (fi
 
 ### Industry Type Conditionals
 
-**industry_type_other Field** (Show ONLY if industry_type="other"):
+**industry_type_other Field** (Show ONLY if industry_type="Other"):
 - **Conditional Logic**:
   ```javascript
-  IF industry_type = "other":
+  IF industry_type = "Other": // capital "O" — matches the API slug exactly
     SHOW industry_type_other field
     MAKE industry_type_other REQUIRED
   ELSE:
