@@ -135,7 +135,7 @@ step_count=4
 | phone | tel | phone[1] | required | intl-tel-input format |
 | title | select | title[1] | required | **Use slug values**: CEO, CFO, Chairman, Co-owner, Controller, Director, General-Manager, Office-Manager, Owner, Partner, President, Treasurer, Vice-President, Other |
 | ssn | text | ssn[1] | required | **Format: XXX-XX-XXXX** (9 digits with dashes), NOT masked in input |
-| dob | date | dob[1] | required | YYYY-MM-DD format |
+| dob | date | dob[1] | required | YYYY-MM-DD format. ⚠️ **No minimum-age (18+) check exists anywhere, client or backend** (`dob.1` is validated only as `required|date_format:Y-m-d`). If merchant owners are required to be adults, that rule doesn't exist yet and needs to be built new — confirm with product before assuming it's already enforced. |
 | ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51%. If Owner 2 is present, `ownership_percentage[1] + ownership_percentage[2]` must not exceed 100 |
 
 ### SSN Input - Social Security Number
@@ -198,9 +198,11 @@ $('#ssn_1').on('input', function() {
 | street_number | text | street_number[1] | owner_1_street_number | required | |
 | street_address | text | street_address[1] | owner_1_street_address | required | |
 | city | text | city[1] | owner_1_city | required | |
-| state | text | state[1] | owner_1_state | required | State code |
+| state | text | state[1] | owner_1_state | required | **Free text** — NOT restricted to US states, no country-based validation. See ⚠️ note below. |
 | postal_code | text | postal_code[1] | owner_1_postal_code | required | |
 | country | select | country[1] | owner_country1 | required | normal dropdown (no search), API: `/api/partner/countries` |
+
+⚠️ **`state[1]`/`state[2]` must be a plain free-text input, valid for any country — do NOT feed it from a US-states-only endpoint/dropdown.** This is easy to get wrong because it's easily confused with the separate `driver_license_state[i]` field below, which genuinely *is* US-states-only, but only because it's conditional on `country[i]="US"` in the first place. The general owner `state[i]` address field has no such restriction at any layer — it accepts any string for any owner country.
 
 ### License
 
@@ -256,7 +258,7 @@ Same structure as Owner 1, with `[2]` suffix:
 'street_number.1' => 'required|string|max:10',
 'street_address.1' => 'required|string|max:255',
 'city.1' => 'required|string|max:100',
-'state.1' => 'required|string|max:2|exists:us_states,code',
+'state.1' => 'required|string', // free text — no us_states/country constraint, any owner country
 'postal_code.1' => 'required|string|max:20',
 'country.1' => 'required|string|exists:country,country_code',
 

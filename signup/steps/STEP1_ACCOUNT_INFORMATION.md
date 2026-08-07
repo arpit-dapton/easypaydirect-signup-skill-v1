@@ -13,12 +13,12 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| first_name | text | Yes | Max 60 chars |
-| last_name | text | Yes | Max 60 chars |
-| email | email | Yes | Valid email format |
+| first_name | text | Yes | UI cap: max 60 chars. (Backend actually allows up to 255 — 60 is a recommended UI limit, not a validation ceiling.) |
+| last_name | text | Yes | UI cap: max 60 chars. Same note as first_name. |
+| email | email | Yes | Valid email format. **Must also be unique** — backend rejects with 422 ("This email address is already registered") if the email already exists on a `users` row. Handle this case distinctly in the error UI (e.g. suggest logging in) rather than showing a generic validation message. |
 | phone | tel | Yes | Use intl-tel-input library |
-| name | text | Yes | Company name, max 60 chars |
-| website | url | Yes | Valid URL or social media profile |
+| name | text | Yes | Company name. UI cap: max 60 chars (backend allows up to 255 — same note as first_name). |
+| website | url | Yes | Backend regex is domain-only with an optional single trailing slash — it does **not** accept a path (`https://facebook.com/mybusiness` fails). Despite the "or social media profile" framing below, only a bare social-media domain (no page/profile path) currently validates. Flag this with product before promising path-based social profile URLs work. |
 | country | select | Yes | Normal dropdown (no search) - API: `/api/partner/countries` |
 | business_state | select | Yes | Normal dropdown (no search) - Show only if country="US", API: `/api/partner/states` |
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
@@ -95,10 +95,10 @@ Response: { uuid, step_count, message }
 
 ## Validation
 
-- First/Last name: required, max 60 chars
-- Email: required, valid format
+- First/Last name: required, UI cap 60 chars (backend allows up to 255)
+- Email: required, valid format, must be unique (422 if already registered)
 - Phone: required, valid number (intl-tel-input validates)
-- Website: required, valid URL
+- Website: required, valid URL — domain only, no path (see Fields table note)
 - Country: required, must be valid country code (e.g., "US", "CA")
 - Business State: required if country="US" (use code, not id)
 - Annual Sales: required, numeric only (no currency symbols or commas)
