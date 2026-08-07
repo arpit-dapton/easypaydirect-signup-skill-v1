@@ -31,18 +31,20 @@ Continuation of [STEP2_COMPANY_INFORMATION.md](STEP2_COMPANY_INFORMATION.md) (fi
     CLEAR value
   ```
 
-**federal_tax_id Field** (Required ONLY if country="US"):
+**federal_tax_id Field** (Required unless country="CA" or business_organized="Sole-Proprietorship"):
 - **Conditional Logic**:
   ```javascript
-  IF country = "US":
-    MAKE federal_tax_id REQUIRED
+  IF country = "CA" (Canada) OR business_organized = "Sole-Proprietorship":
+    federal_tax_id is OPTIONAL (field disabled/cleared — see Federal Tax ID Input Format below)
   ELSE:
-    federal_tax_id is OPTIONAL (still shown/enabled unless Canada or Sole Proprietorship — see Federal Tax ID Input Format below)
+    MAKE federal_tax_id REQUIRED (US and every other country)
   ```
 
 **federal_tax_id Label** (Changes based on country):
 - **If country="US"**: Label = "Federal Tax ID"
 - **If country≠"US"**: Label = "Federal Tax ID (or Corporation Tax Number equivalent)"
+
+(Label logic is unrelated to required-ness — see above. Only Canada/Sole-Proprietorship make the field optional; the label just changes text for non-US countries.)
 
 ### Industry Type Conditionals
 
@@ -74,9 +76,10 @@ The `federal_tax_id` input (`id="txn_id"`, `name="federal_tax_id"`) is a **forma
 **Enable / disable / required rules** (evaluated on load and whenever `country` or `business_organized` changes):
 - **Sole Proprietorship** (`business_organized = "Sole-Proprietorship"`): **disable** the field, remove `required`, clear the value. Show the hint: *"Sole proprietors: You will be asked for your SSN when setting up your account."*
 - **Canada** (`country = "CA"`): **disable** the field, remove `required`, clear the value.
-- **US** (`country = "US"`, not Sole Proprietorship): enable, mark `required` (backend requires `federal_tax_id` only for `country="US"`), and (re)apply the Cleave mask.
-- **Any other country** (not US, not Canada, not Sole Proprietorship): enable, but **do NOT mark `required`** (backend does not require `federal_tax_id` outside the US), and (re)apply the Cleave mask for that country.
+- **Any other country/structure** (not Canada, not Sole Proprietorship — this includes the US): enable, mark `required` (backend requires `federal_tax_id` for every country except Canada and Sole-Proprietorships — see `ApplicationStepRequest::step2Rules()`), and (re)apply the Cleave mask for that country.
 - Always **destroy the previous Cleave instance** before creating a new one (re-formatting on country change), else masks stack.
+
+⚠️ **Do not gate this on `country === 'US'`.** An earlier version of this doc required `federal_tax_id` only for `country="US"`, which under-required it for every other non-Canada country (e.g. UK, Australia). The backend's actual rule is "required unless Canada or Sole-Proprietorship" — mirror that exactly.
 
 **Validation** (`jquery-validate` custom method):
 - Minimum **9 digits** for US/Canada/PR.
@@ -110,8 +113,8 @@ function manageFederalTaxId(country, businessOrganized) {
         $txnId.prop('disabled', true).removeAttr('required')
               .removeClass('is-invalid error').val('').trigger('change');
     } else {
-        // Required only for US — backend does not require federal_tax_id for other countries
-        $txnId.prop('disabled', false).prop('required', country === 'US');
+        // Required for the US and every other non-Canada, non-sole-proprietorship country
+        $txnId.prop('disabled', false).prop('required', true);
         manageFederalTaxIdFormat(country);
     }
 }

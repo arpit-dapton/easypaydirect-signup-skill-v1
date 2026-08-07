@@ -19,15 +19,15 @@ Second step of the 6-step signup form. Collects company business details, addres
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| legal_name | text | Yes | Max 60 chars. **Pre-fill from Step 1 `name` field** |
-| name | text | Yes | DBA name, max 60 chars. **Pre-fill from Step 1 `name` field** |
+| legal_name | text | Yes | UI cap: max 60 chars (backend allows up to 255). **Pre-fill from Step 1 `name` field** |
+| name | text | Yes | DBA name, UI cap: max 60 chars (backend allows up to 255). **Pre-fill from Step 1 `name` field** |
 | industry_type | select | Yes | Normal dropdown (no search) - API: `/api/partner/industry-types` |
 | industry_type_other | text | Conditional | Show if industry_type="Other" (capital "O" — matches API slug), max 255 chars |
 | customer_service_telephone_number | tel | Yes | Use intl-tel-input |
 | business_location | select | Yes | Static (slug): Home-Based, Co-Working, Corporate-Office, Storefront, Others |
 | business_formed | date | Yes | YYYY-MM-DD, use date picker |
 | business_organized | select | Yes | Static (slug): Corporation, LLC, Partnership, Government, Sole-Proprietorship, Non-Profit, Other |
-| federal_tax_id | text | Conditional | Required ONLY if Step 1 `country`="US", max 20 chars, encrypted. Formatted input — see **Federal Tax ID Input Format** in [STEP2_COMPANY_INFORMATION_CONDITIONALS.md](STEP2_COMPANY_INFORMATION_CONDITIONALS.md). Label/format vary by Step 1 `country` |
+| federal_tax_id | text | Conditional | Required unless Step 1 `country`="CA" (Canada) or `business_organized`="Sole-Proprietorship" — i.e. required for the US and every other country except Canada, max 20 chars, encrypted. Formatted input — see **Federal Tax ID Input Format** in [STEP2_COMPANY_INFORMATION_CONDITIONALS.md](STEP2_COMPANY_INFORMATION_CONDITIONALS.md). Label/format vary by Step 1 `country` |
 | business_register_number | text | Conditional | Required ONLY if Step 1 `country`≠"US" (not US), max 20 chars (11 for Canada) |
 
 **Revenue Model** (3 fields - Checkbox Array with Dependent Hierarchy):
@@ -58,10 +58,10 @@ ELSE:
 | Field | Type | Name Attribute | Notes |
 |-------|------|---|---|
 | street_number | text | street_number | REQUIRED, max 10 chars |
-| street_address | text | street_address | REQUIRED, max 60 chars |
-| city | text | city | REQUIRED, max 60 chars |
+| street_address | text | street_address | REQUIRED, max 255 chars |
+| city | text | city | REQUIRED, max 100 chars |
 | state | text | state | REQUIRED, max 40 chars |
-| postal_code | text | postal_code | REQUIRED, max 15 chars |
+| postal_code | text | postal_code | REQUIRED, max 20 chars |
 | address_country | select | address_country | REQUIRED - normal dropdown (no search), API: `/api/partner/countries` (see [reference/DROPDOWNS_STATIC_REFERENCE.md](../reference/DROPDOWNS_STATIC_REFERENCE.md)) |
 
 **Physical/Mailing Address** (7 fields - Conditional on radio selection, manual entry):

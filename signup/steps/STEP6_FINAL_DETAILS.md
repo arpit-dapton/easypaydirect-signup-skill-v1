@@ -19,7 +19,7 @@ Sixth step of the 6-step signup form. Collects referral information, interest de
 | **transaction_device** | **select** | **No** | **Normal dropdown (no search) - Hardcoded Static Options** - See details below |
 | bad_experience | select | Yes | Normal dropdown (no search) - Static: Yes(1), No(0) |
 | bad_experience_happened | text | Conditional | Show if bad_experience=1, max 300 chars |
-| other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes |
+| other_interests_capital | checkbox array | No | Normal (no search) - API: `/api/partner/interest-details`, grouped checkboxes. ⚠️ Confirm this with product before building: the backend currently allows zero selections, but production's older form requires ≥1. If that requirement should carry forward, this needs to flip to required and the backend rule tightened back to match — don't assume optional is settled. |
 | **terms_and_conditions_text** | **textarea** | **N/A — display only** | **Read-only/disabled, not submitted to the API** — See "Terms & Conditions Display" below |
 | terms_and_conditions_agreed | checkbox | Yes | Required to submit, value must be 1 |
 

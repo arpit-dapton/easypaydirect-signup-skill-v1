@@ -21,7 +21,7 @@ Fifth step of the 6-step signup form. Collects bank account and routing informat
 | customer_pay_currency | radio | Conditional | Show if Step 1 `country="CA"` (Canada), Options: USD, CAD |
 | routing_number | text | Yes | Label varies by Step 1 `country` |
 | account_number | text | Yes | Alphanumeric |
-| current_processing | select | Yes | Options: Yes(1), No(0) |
+| current_processing | select | No | Options: Yes(1), No(0). Optional — matches production; do not mark required. |
 | processor_name | text | Conditional | Show if current_processing=1, max 300 chars |
 
 ---
@@ -102,5 +102,5 @@ Response: { next_step_url, message }
 ## Field Summary
 
 **Total Fields**: 9 (country is a Step 1 field; no account-type UI field)  
-**Required Fields**: 6  
+**Required Fields**: 5 (`current_processing` is optional — see Fields table)  
 **Conditional Fields**: 3
