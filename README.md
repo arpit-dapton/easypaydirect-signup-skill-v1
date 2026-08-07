@@ -1,4 +1,4 @@
-# Singup Form Skills
+# Signup Form Skills
 
 Professional, reusable skills and specifications for AI code generation.
 
