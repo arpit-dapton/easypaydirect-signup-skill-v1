@@ -123,8 +123,15 @@ Response: { uuid, step_count, message }
   "step_count": 1
 }
 
-// Persist response.uuid for all subsequent steps (storage mechanism is your choice —
-// see skill.md → Guidance) and proceed to Step 2
+// 1. Persist uuid and country for all subsequent steps
+localStorage.setItem('signup_uuid', response.uuid);
+localStorage.setItem('signup_step', 1);
+localStorage.setItem('signup_country', $('#country').val()); // code/slug, e.g. "US"
+
+// 2. Save Step 1 field values so they are restored if the user navigates back
+saveStepData(1, '#step1Form'); // see skill.md → Form Data Persistence
+
+// 3. Proceed to Step 2
 ```
 
 **On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 1, display field errors, do not change URL.
@@ -152,12 +159,26 @@ $(document).ready(function() {
     const uuid = getSignupUuid(); // however the implementation retrieves it
 
     if (uuid) {
-        // Step 1 was already submitted — lock the entire form
+        // 1. Restore saved field values so the user sees their data (not empty fields)
+        //    Must run BEFORE disabling so values are written while fields are still writable
+        restoreStepData(1, '#step1Form'); // see skill.md → Form Data Persistence
+
+        // 2. Re-apply conditional field visibility based on restored country value
+        //    (e.g. business_state is shown only when country="US")
+        $('#country').trigger('change');
+
+        // 3. Re-set the intl-tel-input phone value from restored data if needed
+        //    (iti.setNumber() accepts the E.164 number stored during submission)
+        const saved = JSON.parse(localStorage.getItem('signup_step_1_data') || '{}');
+        if (typeof iti !== 'undefined' && saved.phone) {
+            iti.setNumber(saved.phone);
+        }
+
+        // 4. Lock the entire form — fields are now readable but not editable
         $('#step1Form input, #step1Form select, #step1Form textarea')
             .prop('disabled', true);
         $('#step1Form button[type="submit"]').prop('disabled', true);
 
-        // Disable the intl-tel-input phone widget if used
         if (typeof iti !== 'undefined') {
             iti.setDisabled(true);
         }

@@ -190,6 +190,80 @@ function handleStepResponse(response, httpStatus) {
 - If the user refreshes the page mid-flow, the form must resume on the same step they were on — it should **not** reset back to Step 1.
 - Persist the current step number and `uuid` so they can be restored after a refresh, using whichever state mechanism fits the implementation (e.g., URL, storage, session).
 
+### Form Data Persistence (Preventing Data Reset on Back Navigation)
+
+**All step field values must be saved so they are restored when the user navigates back to a previous step.** Without this, fields appear empty on revisit.
+
+**Save** field values on each step's successful API submission, before navigating forward:
+
+```javascript
+function saveStepData(step, formElement) {
+    const data = {};
+    $(formElement).find('input, select, textarea').each(function() {
+        const name = $(this).attr('name');
+        if (!name) return;
+        if ($(this).attr('type') === 'checkbox') {
+            if (!data[name]) data[name] = [];
+            if ($(this).is(':checked')) data[name].push($(this).val());
+        } else if ($(this).attr('type') === 'radio') {
+            if ($(this).is(':checked')) data[name] = $(this).val();
+        } else {
+            data[name] = $(this).val();
+        }
+    });
+    localStorage.setItem(`signup_step_${step}_data`, JSON.stringify(data));
+}
+```
+
+**Restore** saved values on each step's page load, before triggering conditional field logic:
+
+```javascript
+function restoreStepData(step, formElement) {
+    const saved = localStorage.getItem(`signup_step_${step}_data`);
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([name, value]) => {
+        const field = $(`[name="${name}"]`, formElement);
+        if (Array.isArray(value)) {
+            value.forEach(v => $(`[name="${name}"][value="${v}"]`, formElement).prop('checked', true));
+        } else if (field.attr('type') === 'radio') {
+            $(`[name="${name}"][value="${value}"]`, formElement).prop('checked', true);
+        } else {
+            field.val(value);
+        }
+    });
+}
+```
+
+**After restoring, re-trigger conditional field logic** so dependent fields reflect the restored values:
+
+```javascript
+$(document).ready(function() {
+    restoreStepData(2, '#step2Form');
+
+    // Re-trigger conditional logic with restored values
+    $('#industry_type').trigger('change');
+    $('input[name="is_physical_address_same_as_legal_address"]:checked').trigger('change');
+    // etc. — trigger every field that controls dependent visibility
+});
+```
+
+**localStorage keys** (use consistently across all steps):
+
+| Key | Contents |
+|-----|----------|
+| `signup_uuid` | UUID from Step 1 response |
+| `signup_step` | Current step number |
+| `signup_country` | Step 1 country code (for cross-step conditionals) |
+| `signup_step_1_data` | Step 1 field values |
+| `signup_step_2_data` | Step 2 field values |
+| `signup_step_3_data` | Step 3 field values |
+| `signup_step_4_data` | Step 4 field values |
+| `signup_step_5_data` | Step 5 field values |
+| `signup_step_6_data` | Step 6 field values |
+
+**Step 1 specifically** — restore data first, then apply the lock. Fields will be populated (visible) and disabled (not editable). See [steps/STEP1_ACCOUNT_INFORMATION.md](steps/STEP1_ACCOUNT_INFORMATION.md) → "Step Lock After Submission".
+
 ### Field Format Rules
 
 | Field Type | Rule |
