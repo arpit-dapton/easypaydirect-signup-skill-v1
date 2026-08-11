@@ -131,12 +131,12 @@ step_count=4
 |-------|------|------|------------|-------|
 | first_name | text | first_name[1] | required if primary_contact=0 | **OMIT entirely if primary_contact=1** (not hidden-with-value — simply not rendered/submitted), visible/editable/required if primary_contact=0 |
 | last_name | text | last_name[1] | required if primary_contact=0 | **OMIT entirely if primary_contact=1**, visible/editable/required if primary_contact=0 |
-| email | email | email[1] | required if primary_contact=0 | **OMIT entirely if primary_contact=1**, visible/editable/required if primary_contact=0 |
+| email | email | email[1] | required if primary_contact=0 | **OMIT entirely if primary_contact=1**, visible/editable/required if primary_contact=0. **🔒 Disable after Step 4 is submitted** — see STEP4_OWNER_INFORMATION_IMPLEMENTATION.md → "Partial Field Lock After Submission" |
 | phone | tel | phone[1] | required | intl-tel-input format |
 | title | select | title[1] | required | **Use slug values**: CEO, CFO, Chairman, Co-owner, Controller, Director, General-Manager, Office-Manager, Owner, Partner, President, Treasurer, Vice-President, Other |
 | ssn | text | ssn[1] | required | **Format: XXX-XX-XXXX** (9 digits with dashes), NOT masked in input |
 | dob | date | dob[1] | required | YYYY-MM-DD format. ⚠️ **No minimum-age (18+) check exists anywhere, client or backend** (`dob.1` is validated only as `required|date_format:Y-m-d`). If merchant owners are required to be adults, that rule doesn't exist yet and needs to be built new — confirm with product before assuming it's already enforced. |
-| ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51%. If Owner 2 is present, `ownership_percentage[1] + ownership_percentage[2]` must not exceed 100 |
+| ownership_percentage | number | ownership_percentage[1] | required, 1-100 | Triggers Owner 2 visibility if < 51%. If Owner 2 is present, `ownership_percentage[1] + ownership_percentage[2]` must not exceed 100. **🔒 Disable after Step 4 is submitted** — see STEP4_OWNER_INFORMATION_IMPLEMENTATION.md → "Partial Field Lock After Submission" |
 
 ### SSN Input - Social Security Number
 

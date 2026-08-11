@@ -131,6 +131,49 @@ Response: { uuid, step_count, message }
 
 ---
 
+## Step Lock After Submission
+
+**Rule**: Once Step 1 has been successfully submitted, if the user navigates back to Step 1, ALL fields must be disabled. The user cannot edit or resubmit Step 1.
+
+### When to apply the lock
+
+On Step 1 page/component load, check whether a `uuid` already exists in the persisted signup state (localStorage, sessionStorage, URL, or wherever the implementation stores it). If a `uuid` is present, Step 1 was already submitted — apply the lock immediately before rendering.
+
+### What to disable
+
+- Every `<input>`, `<select>`, and `<textarea>` inside the Step 1 form
+- The submit button
+- The `intl-tel-input` phone widget (call `iti.setDisabled(true)` on the instance)
+
+### Implementation
+
+```javascript
+$(document).ready(function() {
+    const uuid = getSignupUuid(); // however the implementation retrieves it
+
+    if (uuid) {
+        // Step 1 was already submitted — lock the entire form
+        $('#step1Form input, #step1Form select, #step1Form textarea')
+            .prop('disabled', true);
+        $('#step1Form button[type="submit"]').prop('disabled', true);
+
+        // Disable the intl-tel-input phone widget if used
+        if (typeof iti !== 'undefined') {
+            iti.setDisabled(true);
+        }
+
+        // Optional: show a read-only notice to the user
+        // e.g. $('#step1Notice').text('This step has already been submitted.').show();
+    }
+});
+```
+
+### Why
+
+The `uuid` is created by the backend at Step 1 submission and identifies the active signup session. Its presence is the authoritative signal that Step 1 is complete. Resubmitting Step 1 with the same email would be rejected with a 422 "email already registered" error, so the form must prevent it client-side rather than showing a confusing error.
+
+---
+
 ## Field Summary
 
 **Total Fields**: 11  

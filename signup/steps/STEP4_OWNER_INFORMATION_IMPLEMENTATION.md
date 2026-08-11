@@ -178,6 +178,47 @@ IF bankruptcy_filed[1] = 1 → SHOW bankruptcy_discharged
 
 ---
 
+## Partial Field Lock After Submission
+
+**Rule**: Once Step 4 has been successfully submitted, if the user navigates back to Step 4, three specific fields must be permanently disabled. All other Step 4 fields remain editable.
+
+### Fields to disable
+
+| Field | Name attribute | Type |
+|-------|---------------|------|
+| Primary owner toggle | `primary_contact` | radio / checkbox |
+| Owner 1 email | `email[1]` | email input |
+| Owner 1 ownership percentage | `ownership_percentage[1]` | number input |
+
+These three fields affect structural data (who the owner is, their identity, and the split of ownership) that the backend already used to create `CompanyOwner` records. Allowing edits would silently diverge the UI from stored data.
+
+### When to apply the lock
+
+On Step 4 page/component load, check whether the persisted `step_count` is ≥ 4 (or whether a flag indicating Step 4 was completed exists in the signup state). If so, apply the lock before rendering.
+
+### Implementation
+
+```javascript
+$(document).ready(function() {
+    const stepCount = getSignupStepCount(); // however the implementation retrieves it
+
+    if (stepCount >= 4) {
+        // Step 4 was already submitted — lock the three structural fields
+        $('input[name="primary_contact"]').prop('disabled', true);
+        $('input[name="email[1]"]').prop('disabled', true);
+        $('input[name="ownership_percentage[1]"]').prop('disabled', true);
+    }
+});
+```
+
+### Interaction with existing conditional logic
+
+- The `primary_contact` radio is now read-only, so its `change` handler will never fire on a returning user. The Owner 1 name/email section visibility should be set once based on the stored/pre-filled value when the step loads, not from user interaction.
+- The `ownership_percentage[1]` field is disabled, so the Owner 2 section visibility toggle (fires when percentage < 51) will not change. Initialize Owner 2 visibility on load from the stored value.
+- `email[1]` is only rendered when `primary_contact=0`. If disabled, the user can see but not edit Owner 1's email.
+
+---
+
 ## Testing Checklist
 
 - [ ] primary_contact=1: Hides first_name/last_name/email fields, does NOT submit them, uses Step 1 user data

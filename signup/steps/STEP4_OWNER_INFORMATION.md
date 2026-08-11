@@ -133,6 +133,8 @@ $('input[name="bankruptcy_discharged[1]"]').on('change', function() {
 
 ## Primary Contact Field
 
+> **🔒 Disable after Step 4 is submitted** — once Step 4 has been successfully submitted, the `primary_contact` radio must be disabled on revisit. See [STEP4_OWNER_INFORMATION_IMPLEMENTATION.md](STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) → "Partial Field Lock After Submission".
+
 **Question**: "Are you the business owner?"
 
 | Value | Meaning |
