@@ -190,6 +190,65 @@ function handleStepResponse(response, httpStatus) {
 - If the user refreshes the page mid-flow, the form must resume on the same step they were on — it should **not** reset back to Step 1.
 - Persist the current step number and `uuid` so they can be restored after a refresh, using whichever state mechanism fits the implementation (e.g., URL, storage, session).
 
+### Re-submission Behavior (Back Navigation)
+
+**All 6 steps accept re-submission.** If a user navigates back to a step they already completed and submits it again, the same API endpoint is called with the same `uuid` — the backend upserts (updates) the existing record rather than creating a duplicate.
+
+Rules that apply to every step:
+
+- **The submit button must never be disabled** for a completed step. Re-submission must always be possible.
+- **Pre-fill fields with the previously saved values** (from localStorage or persisted state) so the user can review and optionally change data before re-submitting.
+- **The form submission handler must work identically** for a first submission and a re-submission — call the same endpoint, pass the same `uuid`, handle success/error the same way.
+- **On re-submission success**, update the persisted step data (localStorage) with the newly submitted values so the next back-navigation shows current data.
+
+```javascript
+// Base pattern for Steps 1, 2, 3, 5, 6 — identical for first submission and re-submission.
+// ⚠️ Do NOT use this directly for Step 4 — Step 4 has its own complete handler in
+//    STEP4_OWNER_INFORMATION_IMPLEMENTATION.md (primary_contact delete logic, field lock,
+//    and disabled-field appending are all Step 4-specific).
+function submitStep(stepNumber, formElement, nextStepFn) {
+    const formData = new FormData(formElement);
+    formData.append('uuid', getSignupUuid());
+
+    // If any fields are disabled (e.g. a step-level read-only lock), their values are NOT
+    // included in FormData automatically — append them manually so the payload is complete.
+    // Exclude hidden inputs — they are never disabled and would be double-appended.
+    $(formElement).find('input:disabled:not([type="hidden"]), select:disabled, textarea:disabled')
+        .each(function() {
+            const name = $(this).attr('name');
+            if (!name) return;
+            const type = $(this).attr('type');
+            if (type === 'radio' || type === 'checkbox') {
+                if ($(this).is(':checked')) formData.append(name, $(this).val());
+            } else {
+                formData.append(name, $(this).val() || '');
+            }
+        });
+
+    $.ajax({
+        url: getStepUrl(stepNumber),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.status) {
+                saveStepData(stepNumber, formElement); // persist for back-navigation
+                nextStepFn();
+            }
+        },
+        error: function(xhr) {
+            const errors = xhr.responseJSON?.errors || {};
+            for (const [field, messages] of Object.entries(errors)) {
+                displayFieldError(field, messages[0]);
+            }
+        }
+    });
+}
+```
+
+⚠️ **Step 4**: Use the dedicated handler in [steps/STEP4_OWNER_INFORMATION_IMPLEMENTATION.md](steps/STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) → "Form Submission". It handles the disabled-field append, primary_contact delete logic, and field lock in one complete, ordered block.
+
 ### Form Data Persistence (Preventing Data Reset on Back Navigation)
 
 **All step field values must be saved so they are restored when the user navigates back to a previous step.** Without this, fields appear empty on revisit.

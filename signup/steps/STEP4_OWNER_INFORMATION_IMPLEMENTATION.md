@@ -24,25 +24,45 @@ Continuation of [STEP4_OWNER_INFORMATION.md](STEP4_OWNER_INFORMATION.md) and [ST
 
 All owner fields must use bracket array notation `[1]` or `[2]`, NOT object notation `{1: value}`
 
-**Correct Implementation**:
+This single handler covers both the **first submission** and any **re-submission** (user navigated back and submitted again). Do not write two separate handlers.
+
 ```javascript
 $('#ownership-form').on('submit', function(e) {
     e.preventDefault();
 
     const uuid = getSignupUuid();  // however the implementation stores it
 
-    // ✅ CORRECT: Use FormData to send as application/x-www-form-urlencoded
+    // Step 1: Collect enabled fields via FormData
+    // ✅ CORRECT: Use FormData — NOT JSON.stringify() or contentType: 'application/json'
     const formData = new FormData(this);
+
+    // Step 2: Append values from disabled fields.
+    // Disabled inputs are excluded from FormData by the browser. After Step 4 has been
+    // submitted once, all fields are disabled (field lock). Without this block, a
+    // re-submission would send an empty payload and fail validation.
+    // Exclude hidden inputs — they are never disabled and would be double-appended.
+    $(this).find('input:disabled:not([type="hidden"]), select:disabled, textarea:disabled')
+        .each(function() {
+            const name = $(this).attr('name');
+            if (!name) return;
+            const type = $(this).attr('type');
+            if (type === 'radio' || type === 'checkbox') {
+                if ($(this).is(':checked')) formData.append(name, $(this).val());
+            } else {
+                formData.append(name, $(this).val() || '');
+            }
+        });
+
+    // Step 3: Append scalar fields not covered by the form's own inputs
     const primaryContact = $('input[name="primary_contact"]:checked').val();
-
-    // ❌ DO NOT: Use JSON.stringify() or contentType: 'application/json'
-
     formData.append('uuid', uuid);
     formData.append('primary_contact', primaryContact);
     formData.append('primary_contact_job_title', $('#primary_contact_job_title').val() || '');
     formData.append('step_count', 4);
 
-    // If primary_contact=1, REMOVE first_name[1], last_name[1], email[1] from submission
+    // Step 4: If primary_contact=1, remove first_name[1]/last_name[1]/email[1] entirely —
+    // these fields are not rendered when primary_contact=1, so they won't be in FormData
+    // from steps 1 or 2 above. This delete is a safety guard only.
     if (primaryContact === '1') {
         formData.delete('first_name[1]');
         formData.delete('last_name[1]');
@@ -60,7 +80,9 @@ $('#ownership-form').on('submit', function(e) {
 
         success: function(response) {
             if (response.status) {
-                goToStep(5, uuid); // however the implementation navigates
+                saveStepData(4, '#ownership-form'); // persist values for back-navigation
+                disableStep4Fields();               // lock all fields after successful save
+                goToStep(5, uuid);                  // however the implementation navigates
             }
         },
         error: function(xhr) {
@@ -178,44 +200,77 @@ IF bankruptcy_filed[1] = 1 → SHOW bankruptcy_discharged
 
 ---
 
-## Partial Field Lock After Submission
+## Full Field Lock After Submission
 
-**Rule**: Once Step 4 has been successfully submitted, if the user navigates back to Step 4, three specific fields must be permanently disabled. All other Step 4 fields remain editable.
+**Rule**: Once Step 4 has been successfully submitted, ALL Step 4 fields must be disabled. Fields must remain fully editable until the moment of a successful submission — never before.
 
-### Fields to disable
-
-| Field | Name attribute | Type |
-|-------|---------------|------|
-| Primary owner toggle | `primary_contact` | radio / checkbox |
-| Owner 1 email | `email[1]` | email input |
-| Owner 1 ownership percentage | `ownership_percentage[1]` | number input |
-
-These three fields affect structural data (who the owner is, their identity, and the split of ownership) that the backend already used to create `CompanyOwner` records. Allowing edits would silently diverge the UI from stored data.
+⚠️ **Do NOT disable any fields on page/component load unless Step 4 has already been submitted.** Disabling fields unconditionally (e.g. in `$(document).ready` without a submission check) is the most common implementation mistake and breaks the form for users who have not yet submitted Step 4.
 
 ### When to apply the lock
 
-On Step 4 page/component load, check whether the persisted `step_count` is ≥ 4 (or whether a flag indicating Step 4 was completed exists in the signup state). If so, apply the lock before rendering.
+There are **two** moments when the lock must be applied:
+
+1. **Immediately after a successful submission** — in the AJAX `success` callback, before navigating to Step 5.
+2. **On page/component load when the user returns to Step 4** — check whether Step 4 was already submitted. Only apply the lock if it was.
 
 ### Implementation
 
+#### 1. Apply lock on successful submission (in the AJAX success callback)
+
+```javascript
+success: function(response) {
+    if (response.status) {
+        // Step 4 submitted successfully — disable ALL fields before moving on
+        disableStep4Fields();
+        goToStep(5, uuid); // however the implementation navigates
+    }
+}
+```
+
+#### 2. Apply lock on page load if Step 4 was already submitted (returning user)
+
+Order matters: **restore saved values first, then apply the lock.** Disabling before restoring leaves all fields disabled AND empty.
+
 ```javascript
 $(document).ready(function() {
-    const stepCount = getSignupStepCount(); // however the implementation retrieves it
+    // 1. Restore previously saved field values so the user sees their data
+    restoreStepData(4, '#ownership-form');
 
+    // 2. Re-trigger conditional visibility based on restored values
+    $('input[name="primary_contact"]:checked').trigger('change');
+    $('input[name="ownership_percentage[1]"]').trigger('input');
+    $('select[name="country[1]"]').trigger('change');
+    // (add any other Step 4 conditionals here)
+
+    // 3. Only after data is restored, apply the field lock if Step 4 was already submitted
+    const stepCount = getSignupStepCount(); // however the implementation retrieves it
     if (stepCount >= 4) {
-        // Step 4 was already submitted — lock the three structural fields
-        $('input[name="primary_contact"]').prop('disabled', true);
-        $('input[name="email[1]"]').prop('disabled', true);
-        $('input[name="ownership_percentage[1]"]').prop('disabled', true);
+        // Step 4 was already submitted — disable all visible fields
+        disableStep4Fields();
     }
+    // If stepCount < 4, Step 4 has NOT been submitted yet — leave all fields editable
 });
+```
+
+#### The disable helper
+
+```javascript
+function disableStep4Fields() {
+    // Disable visible interactive fields only.
+    // ⚠️ Exclude [type="hidden"] — hidden inputs must never be disabled.
+    //    Disabled hidden inputs are excluded from FormData, which would silently drop
+    //    uuid, step_count, and any other hidden values from re-submission payloads.
+    // NOTE: the submit button is intentionally NOT disabled — re-submission must remain possible.
+    //    See skill.md → "Re-submission Behavior".
+    $('#ownership-form input:not([type="hidden"]), #ownership-form select, #ownership-form textarea')
+        .prop('disabled', true);
+}
 ```
 
 ### Interaction with existing conditional logic
 
-- The `primary_contact` radio is now read-only, so its `change` handler will never fire on a returning user. The Owner 1 name/email section visibility should be set once based on the stored/pre-filled value when the step loads, not from user interaction.
-- The `ownership_percentage[1]` field is disabled, so the Owner 2 section visibility toggle (fires when percentage < 51) will not change. Initialize Owner 2 visibility on load from the stored value.
-- `email[1]` is only rendered when `primary_contact=0`. If disabled, the user can see but not edit Owner 1's email.
+- Because `primary_contact` is disabled after submission, its `change` handler will never fire on a returning user. Set the Owner 1 name/email section visibility once on load based on the stored/pre-filled value — do not rely on the change event.
+- Because `ownership_percentage[1]` is disabled, the Owner 2 visibility toggle will not fire on a returning user. Initialize Owner 2 visibility on load from the stored value.
 
 ---
 
@@ -230,9 +285,15 @@ $(document).ready(function() {
 - [ ] country≠US: Hides `driver_license_state` and `driver_license_expiration_date`
 - [ ] bankruptcy_filed=1: Shows discharged field
 - [ ] bankruptcy_discharged=1: Shows date field
+- [ ] DOB date picker blocks any date less than 18 years ago (minimum age enforcement, both Owner 1 and Owner 2)
 - [ ] All required fields validated
 - [ ] Proceeds to Step 5 on success (uuid carried forward)
 - [ ] Shows errors on validation failure
+- [ ] All Step 4 fields are **editable** before the form is submitted (no premature disabling)
+- [ ] All Step 4 fields become **disabled** immediately after a successful Step 4 submission
+- [ ] All Step 4 fields are **disabled** when a returning user lands on Step 4 after it was already submitted (stepCount ≥ 4)
+- [ ] The submit button remains **enabled** after Step 4 has been submitted (re-submission must be possible)
+- [ ] Re-submitting Step 4 (with disabled fields) sends a complete payload — disabled field values are appended manually to FormData
 
 ---
 

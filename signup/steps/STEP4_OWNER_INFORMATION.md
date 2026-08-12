@@ -88,7 +88,7 @@ Step 4 has three date fields per owner (Owner 1 and Owner 2), each identified by
 
 | Field | Required | Date constraint |
 |-------|----------|------------------|
-| `dob[1]`, `dob[2]` | Yes | `maxDate: new Date()` — must be a past date, not today/future |
+| `dob[1]`, `dob[2]` | Yes | `maxDate: 18 years before today` — owner must be at least 18 years old; dates within the last 18 years are rejected |
 | `driver_license_expiration_date[1]`, `[2]` | Yes, only if owner `country=US` | `minDate: new Date()` — must be today or future, not past |
 | `bankruptcy_discharged_date[1]`, `[2]` | Conditional, only if `bankruptcy_discharged=1` | `maxDate: new Date()` — must be a past date, not today/future |
 
@@ -100,12 +100,27 @@ Step 4 has three date fields per owner (Owner 1 and Owner 2), each identified by
 </div>
 ```
 
-**JavaScript (Flatpickr)** — swap `minDate`/`maxDate` per the table above:
+**JavaScript (Flatpickr)** — DOB uses a computed `maxDate` 18 years in the past; swap `minDate`/`maxDate` for other fields per the table above:
 ```javascript
+// Compute the latest allowed DOB (must be at least 18 years old)
+const maxDob = new Date();
+maxDob.setFullYear(maxDob.getFullYear() - 18);
+
 flatpickr('#dob_1', {
     mode: 'single',
-    format: 'Y-m-d',
-    maxDate: new Date(), // or minDate, per field — see table above
+    dateFormat: 'Y-m-d',
+    maxDate: maxDob, // rejects any date less than 18 years ago
+    placeholder: 'YYYY-MM-DD'
+});
+
+// Same for Owner 2
+const maxDob2 = new Date();
+maxDob2.setFullYear(maxDob2.getFullYear() - 18);
+
+flatpickr('#dob_2', {
+    mode: 'single',
+    dateFormat: 'Y-m-d',
+    maxDate: maxDob2,
     placeholder: 'YYYY-MM-DD'
 });
 ```
@@ -133,7 +148,7 @@ $('input[name="bankruptcy_discharged[1]"]').on('change', function() {
 
 ## Primary Contact Field
 
-> **🔒 Disable after Step 4 is submitted** — once Step 4 has been successfully submitted, the `primary_contact` radio must be disabled on revisit. See [STEP4_OWNER_INFORMATION_IMPLEMENTATION.md](STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) → "Partial Field Lock After Submission".
+> **🔒 Disabled (along with all other Step 4 fields) after Step 4 is successfully submitted** — all Step 4 fields must remain editable until the moment of a successful submission. After submission, all fields are disabled. See [STEP4_OWNER_INFORMATION_IMPLEMENTATION.md](STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) → "Full Field Lock After Submission".
 
 **Question**: "Are you the business owner?"
 
