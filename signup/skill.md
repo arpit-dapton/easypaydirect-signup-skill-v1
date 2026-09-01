@@ -34,7 +34,37 @@ Then act on their answer:
 | **1. Enter partner key** | Collect the exact key value from them. When you build Step 1's submission, include it as `partner_key` in the **Step 1 JSON payload body** (not a header) — see [steps/STEP1_ACCOUNT_INFORMATION.md](steps/STEP1_ACCOUNT_INFORMATION.md) and "Partner Attribution Payload" below. |
 | **2. Skip** | Do not include `partner_key` in the payload at all. Do not send an empty string, `null`, or a placeholder. |
 
-Only after the user has actually answered this question should you continue to the Form Overview and begin implementation.
+Only after the user has actually answered this question should you continue to the next mandatory step below.
+
+---
+
+## 🛑 MANDATORY SECOND STEP — Choose the Signup Flow
+
+**After the partner-key question above, and still before writing any code, ask which signup flow to build.** This is also a hard gate — do not default to Option 1 on the user's behalf, and do not skip this because "the regular flow" seems like the obvious choice.
+
+**Ask exactly this, with exactly three options, and wait for the reply before proceeding:**
+
+> Which signup flow do you want to build?
+> 1. The regular flow — all 6 steps, completed on this form.
+> 2. Step 1 only — after submitting Step 1, redirect the merchant to EMAP's own website to finish Steps 2–6.
+> 3. All 6 steps (same as Option 1), plus a "finish later" option that emails the merchant a resume link.
+
+Then act on their answer:
+
+| Answer | What to do |
+|---|---|
+| **1. Regular flow** | Proceed exactly as documented in the rest of this file — no changes needed. This is fully supported today. |
+| **2. Step 1 only + redirect** | Supported, no new backend endpoint needed. After a successful Step 1 submission, redirect the browser straight to `{EMAP_APP_URL}/upload-document/{uuid}?redirect=1` (using the `uuid` returned by `POST /v1/signup`) — this is EMAP's own existing auto-login + resume route (the same one its admin dashboard's "Resume Merchant Signup" button already links to). See "Flow Option 2 & 3 Backend Endpoints" below. |
+| **3. 6 steps + resume email** | Supported. Wire a "finish later" action that calls `POST /v1/signup/resume-link` with the merchant's `email`. See "Flow Option 2 & 3 Backend Endpoints" below. |
+
+### Flow Option 2 & 3 Backend Endpoints
+
+Verified end-to-end against `origin/staging` of `epd-emap` (2026-09-01):
+
+- **Option 2 (redirect after Step 1)** needs no new backend code. Just redirect the browser to `GET {EMAP_APP_URL}/upload-document/{uuid}?redirect=1` (existing, unauthenticated-safe route — it logs the merchant in by `uuid` and routes them to wherever their application currently stands). Note: since the backend only starts recording `step_count` from Step 2 onward, a merchant who has only completed Step 1 via the partner API currently lands back on Step 1 (pre-filled, since that data is already saved) rather than Step 2 — same behavior as the existing admin "Resume Merchant Signup" button, not something this skill's flow changes.
+- **`POST /v1/signup/resume-link`** — body `{"email": "<merchant's email>"}`. Returns `{"status":true,"message":"Resume link sent"}` (200, always — mirrors the existing EMAP "finish later" feature's own behavior of never revealing whether an email matches an account) and emails the merchant a resume link via EMAP's existing "finish later" template; `422` for a missing/invalid email, `429` if rate-limited (5 requests / 5 minutes per IP). This is EMAP's existing `SignupController::sendFinishLaterLink` logic reused as-is, just with its `auth()` session check swapped for an email lookup since a partner-hosted form's visitor has no EMAP session.
+
+Full detail and implementation notes are in [reference/BACKEND_DEPENDENCIES.md](reference/BACKEND_DEPENDENCIES.md).
 
 ---
 
@@ -65,7 +95,7 @@ Conditional/dependent field logic lives in each step file's own "Dependent Field
 
 ## Global Implementation
 
-⚠️ Have you asked the partner-API-key question yet? See "MANDATORY FIRST STEP" at the top of this file. Do not proceed past this point until you have.
+⚠️ Have you asked the partner-API-key question and the flow-selection question yet? See "MANDATORY FIRST STEP" and "MANDATORY SECOND STEP" at the top of this file. Do not proceed past this point until you have.
 
 ### Required Implementation Parameters
 
