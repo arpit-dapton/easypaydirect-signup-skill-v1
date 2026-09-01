@@ -9,7 +9,7 @@ Status as of **2026-09-01**, verified against `origin/staging` of `epd-emap`.
 
 ---
 
-## 1. Flow Option 2 (Step 1 only, redirect to EMAP) — no new backend code
+## 1. Flow Option 2 (Step 1 only, redirect to EMAP) — reuses an existing route, plus one bug fix
 
 EMAP already has an admin-facing "Resume Merchant Signup" button (on the deal edit page, e.g. `/dashboard/applications/{uuid}/edit`) that just links to:
 
@@ -21,7 +21,12 @@ This route (`SignupController::uploadDocument`, `routes/web.php`) requires no au
 
 The partner-hosted Step 1 form already has everything it needs for this: `POST /v1/signup` returns the `uuid`. Just redirect the browser there after Step 1 succeeds — no `/v1/signup/continue` endpoint, no new token type, no backend changes at all.
 
-**Known limitation (not something this skill's flow controls)**: `Application.step_count` is only ever recorded starting from Step 2's submission (`SignupAPIController::submitApplicationStep`) — the Step 1→2 transition in EMAP's own SPA happens client-side without the backend recording it. So a merchant who has only completed Step 1 via the partner API currently lands back on **Step 1** (pre-filled, since that data is already saved), not Step 2, when this redirect fires. This is the same behavior the existing admin "Resume Merchant Signup" button already produces for any deal at this stage — it isn't a gap introduced by this flow, and fixing it would mean changing EMAP's own step-routing logic, out of scope for a partner-side form.
+**Resolved (was mis-diagnosed as a backend limitation)**: this redirect lands on the right step (Step 2, not Step 1) as long as the Step 1 payload sent to `POST /v1/signup` includes `"step_count": 1`. `SignupAPIController::externalSignup()` never sets `step_count` explicitly — instead, `saveUserCompanyInformation()` mass-assigns whatever the raw request body contains onto `Company`/`Application` (`step_count` is `$fillable` on both), then builds the `Application` record from `$company->toArray()`. EMAP's own native Step 1 JS relies on this exact mechanism (`js.blade.php:131,312`: `values['step_count'] = 1`) — there's no special controller logic, the value just has to be present in the payload. The skill's Step 1 examples and generated form now send it (see [STEP1_ACCOUNT_INFORMATION.md](../steps/STEP1_ACCOUNT_INFORMATION.md)); no epd-emap backend changes were needed for this.
+
+**Bug fixed along the way**: landing on Step 1 through this route (`Client\IndexController::page()`) used to hard-crash with `Undefined variable $data` (then `$from_lander`) — `step1/form.blade.php` and its partials are normally only rendered by `SignupController::index()` (`GET /signup`), which builds those variables from request input; `page()` never supplied them. This affected EMAP's own admin "Resume Merchant Signup" button too, for any deal stuck at step 1 — it just hadn't been hit before, since EMAP's own SPA never full-page-reloads back into step 1. Fixed by having `page()` pass `data`/`email`/`from_lander` (read back from the existing `Application`/`Company` records) when it resolves to the step-1 view.
+
+**Files touched**:
+- `app/Http/Controllers/Client/IndexController.php` — `page()`'s view array gained `data`/`email`/`from_lander` keys, added unconditionally (cheap, no new queries — read back from `$applicationInfo`/`$userCompanyRecord`, already loaded for every step). Harmless for steps 2+, whose views never reference these keys.
 
 ---
 
@@ -61,7 +66,7 @@ No migration, no model changes — an earlier version of this work added a `purp
 
 | Flow | New backend work |
 |---|---|
-| Option 2 (redirect after Step 1) | None — reuses existing `GET /upload-document/{uuid}?redirect=1` |
+| Option 2 (redirect after Step 1) | Reuses existing `GET /upload-document/{uuid}?redirect=1`; required one bug fix in `IndexController::page()` (see above). No backend change needed to land on Step 2 — that's a skill-side fix (Step 1 payload must include `step_count: 1`) |
 | Option 3 (resume email) | `POST /v1/signup/resume-link` — `SignupController::sendFinishLaterLink` reused as-is, auth swapped for an email lookup |
 
 **Not yet done**: this work is uncommitted on a local-only `epd-emap` branch (`feat/emap-signup-flow-2-3-backend`, based on `origin/staging`) — not committed, pushed, reviewed, or merged.
