@@ -5,7 +5,7 @@ description: EMAP (epd-emap) backend endpoints powering Flow Option 2 (redirect)
 
 # Backend Endpoints — Flow Options 2 & 3
 
-Status as of **2026-09-01**, verified against `origin/staging` of `epd-emap`. Backend work is on branch `feat/emap-signup-flow-2-3-backend`, pushed to `origin`, not yet merged — confirm it's deployed to your target environment before relying on it.
+These endpoints must be deployed to your target EMAP environment before Options 2 or 3 will work — confirm availability before relying on them.
 
 ---
 
