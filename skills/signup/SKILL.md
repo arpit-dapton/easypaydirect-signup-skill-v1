@@ -205,6 +205,30 @@ function handleStepResponse(response, httpStatus) {
 }
 ```
 
+### Network Resilience — Retry Once on Transient Fetch Failure
+
+⚠️ **Observed in testing**: a `fetch()` call to any `v1` signup endpoint can occasionally fail on the very first attempt (the promise rejects or the response body fails to parse) even though the backend actually processed the request successfully and a plain retry with the same payload immediately succeeds. Symptom: the user clicks "Continue" (or "Save and finish later"), sees a generic network-error banner and stays on the same step, then clicks again with no other change and it proceeds normally. This looks like a transient hiccup on the cross-origin connection to the EMAP host (e.g. a cold-connection first request), not a payload or endpoint bug.
+
+**Do not make the user click twice to work around this.** Every submit/fetch call in this skill (Steps 1-6 and the resume-link "finish later" call) must retry once automatically before showing an error, using a shared helper:
+
+```javascript
+function fetchWithRetry(url, options, retries) {
+  retries = retries === undefined ? 1 : retries;
+  return fetch(url, options).then(function(r) {
+    return r.json().then(function(body) {
+      return { status: r.status, body: body };
+    });
+  }).catch(function(err) {
+    if (retries > 0) {
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw err;
+  });
+}
+```
+
+Use `fetchWithRetry(url, options)` in place of the raw `fetch(url, options).then(r => r.json()...)` pattern shown elsewhere in this skill, for every step's submission call and for the resume-link call. Only the final failure (after the retry is exhausted) should reach the `.catch()` that shows "Network error. Please check your connection and try again." to the user.
+
 ---
 
 ## Guidance
