@@ -13,19 +13,27 @@ Instead of describing the form once and hoping the agent infers the rest, this r
 *Option A — `npx skills` (recommended)*
 
 ```bash
-npx skills add <owner>/signup-skills
+npx skills add daptondev2/signup-skills
 ```
 
 This is the [open agent skills CLI](https://skills.sh) — it detects which coding agents you have installed (Claude Code, Cursor, Codex, and 70+ others), lets you pick which to install to, and symlinks or copies `skills/signup/` into the right place for each (e.g. `.claude/skills/signup/` for Claude Code). Use `--list` first to preview what it finds without installing anything:
 
 ```bash
-npx skills add <owner>/signup-skills --list
+npx skills add daptondev2/signup-skills --list
 ```
+
+> **Note:** `npx skills add owner/repo` always resolves against the repo's default branch (`main`). This `skills/signup/SKILL.md` layout currently lives on the `restructure/skills-cli-layout` branch and hasn't been merged yet — until it is, the command above will still discover the skill (the CLI falls back to a wider scan), but under the old `signup/skill.md` path, not the new one. To install from this branch specifically before it merges:
+> ```bash
+> git clone -b restructure/skills-cli-layout https://github.com/daptondev2/signup-skills.git signup-skills
+> npx skills add ./signup-skills
+> ```
+> (A GitHub URL pinned to this branch doesn't work as a shortcut here — the CLI's branch parsing splits on `/`, and this branch name contains one, so it's misread as branch `restructure` plus a subpath. Local-path install after cloning is the reliable option until merge.)
 
 *Option B — copy it manually*
 
 ```bash
-git clone <this-repo-url> signup-skills
+git clone https://github.com/daptondev2/signup-skills.git signup-skills
+# until restructure/skills-cli-layout is merged to main, add: -b restructure/skills-cli-layout
 cp -r signup-skills/skills/signup .claude/skills/signup
 ```
 
