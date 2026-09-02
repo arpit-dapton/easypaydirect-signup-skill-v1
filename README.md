@@ -13,19 +13,19 @@ Instead of describing the form once and hoping the agent infers the rest, this r
 *Option A — `npx skills` (recommended)*
 
 ```bash
-npx skills add daptondev2/emap-signup-skills
+npx skills add arpit-dapton/emap-signup-skills
 ```
 
 This is the [open agent skills CLI](https://skills.sh) — it detects which coding agents you have installed (Claude Code, Cursor, Codex, and 70+ others), lets you pick which to install to, and symlinks or copies `skills/signup/` into the right place for each (e.g. `.claude/skills/signup/` for Claude Code). Use `--list` first to preview what it finds without installing anything:
 
 ```bash
-npx skills add daptondev2/emap-signup-skills --list
+npx skills add arpit-dapton/emap-signup-skills --list
 ```
 
 *Option B — copy it manually*
 
 ```bash
-git clone https://github.com/daptondev2/emap-signup-skills.git emap-signup-skills
+git clone https://github.com/arpit-dapton/emap-signup-skills.git emap-signup-skills
 cp -r emap-signup-skills/skills/signup .claude/skills/signup
 ```
 
