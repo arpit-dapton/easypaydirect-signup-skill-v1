@@ -115,7 +115,7 @@ $('input[name="name"]').val(step1CompanyName);
 
 - `Cleave.js` v1.6.0 - Federal Tax ID input masking (see Federal Tax ID Input Format)
 - Date picker library (e.g., Flatpickr, Bootstrap DatePicker, or similar)
-- `intl-tel-input` - Phone formatting
+- `intl-tel-input` - Phone formatting. Use the exact CDN URLs and version pinned in [STEP1_ACCOUNT_INFORMATION.md § Libraries Required](STEP1_ACCOUNT_INFORMATION.md#libraries-required) — don't guess a different path/version for this second phone field.
 
 ---
 

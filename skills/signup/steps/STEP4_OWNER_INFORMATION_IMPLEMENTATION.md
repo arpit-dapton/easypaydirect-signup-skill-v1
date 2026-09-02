@@ -12,7 +12,7 @@ Continuation of [STEP4_OWNER_INFORMATION.md](STEP4_OWNER_INFORMATION.md) and [ST
 ## Libraries Required
 
 - Date picker library (e.g., Flatpickr, Bootstrap DatePicker, or similar) - For dob, driver_license_expiration_date, bankruptcy_discharged_date
-- `intl-tel-input` - Phone formatting
+- `intl-tel-input` - Phone formatting. Use the exact CDN URLs and version pinned in [STEP1_ACCOUNT_INFORMATION.md § Libraries Required](STEP1_ACCOUNT_INFORMATION.md#libraries-required) for every phone field on this step too — don't guess a different path/version.
 
 ---
 

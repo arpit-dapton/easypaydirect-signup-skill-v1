@@ -68,6 +68,18 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 - `intl-tel-input@22.0.2` - Phone formatting with country selector
 - `dependent-fields.js` - Conditional field visibility
 
+**Use these exact CDN URLs — do not guess or substitute a different CDN/path/version.** `intl-tel-input`'s build output path has changed across major versions, so a guessed path (e.g. `js/utils.js` instead of `build/js/utils.js`, or an unpkg URL instead of jsdelivr) is a common source of a silently-broken phone field. Verified working (HTTP 200) as of this writing:
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@22.0.2/build/css/intlTelInput.css">
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@22.0.2/build/js/intlTelInput.min.js"></script>
+```
+```js
+window.intlTelInput(phoneInputEl, {
+  utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@22.0.2/build/js/utils.js',
+  initialCountry: 'us'
+});
+```
+
 ---
 
 ## API Integration
