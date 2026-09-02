@@ -40,22 +40,22 @@ Only after the user has actually answered this question should you continue to t
 
 ## 🛑 MANDATORY SECOND STEP — Choose the Signup Flow
 
-**After the partner-key question above, and still before writing any code, ask which signup flow to build.** This is also a hard gate — do not default to Option 1 on the user's behalf, and do not skip this because "the regular flow" seems like the obvious choice.
+**After the partner-key question above, and still before writing any code, ask which signup experience to build.** This is also a hard gate — do not default to Option 1 on the user's behalf, and do not skip this because it seems like the obvious choice. The person answering is very likely not a developer and has no reason to know internal terms like "steps" or "flows" — ask in plain language about what the merchant visiting their site will actually experience, not in the codebase's own jargon.
 
-**Ask exactly this, with exactly three options, and wait for the reply before proceeding:**
+**Ask exactly this, with exactly three options, and wait for the reply before proceeding.** Display it verbatim — do not annotate the options with implementation terms (e.g. "(Step 1)", "(all 6 steps)", "flow") pulled from the table further below. That table is internal guidance for you to act on after they answer; none of its terminology belongs in what the person actually sees.
 
-> Which signup flow do you want to build?
-> 1. The regular flow — all 6 steps, completed on this form.
-> 2. Step 1 only — after submitting Step 1, redirect the merchant to EMAP's own website to finish Steps 2–6.
-> 3. All 6 steps (same as Option 1), plus a "finish later" option that emails the merchant a resume link.
+> How do you want the sign-up process to work for merchants on your site?
+> 1. **All in one place** — the merchant fills out their entire application on your website, from start to finish. They never have to leave your site.
+> 2. **Quick start, then handed off** — the merchant only enters their basic contact info on your website. As soon as they submit that, they're automatically taken to EMAP's own website to finish the rest of their application there.
+> 3. **All in one place, with a "save and finish later" option** — same as option 1 (the whole application happens on your website), but if a merchant gets interrupted partway through, they can request an email with a link that lets them pick up right where they left off.
 
 Then act on their answer:
 
 | Answer | What to do |
 |---|---|
-| **1. Regular flow** | Proceed exactly as documented in the rest of this file — no changes needed. This is fully supported today. |
-| **2. Step 1 only + redirect** | Supported, no new backend endpoint needed. **Only scaffold Step 1's page/form — do not build Steps 2–6 at all.** The merchant leaves this site the moment Step 1 succeeds, so any Step 2–6 UI would be dead code, never reached. **Also strip every "N of 6" / multi-step signal from the one page you do build** — no 6-dot progress bar, no "Step 1 of 6" subtitle, no step counter of any kind. There is exactly one step on this site; showing "1 of 6" falsely promises the merchant 5 more steps here before they get redirected away entirely. If you want a progress affordance at all, it must not imply steps beyond this one (e.g. a plain "Create your account" heading with no counter). After a successful Step 1 submission, redirect the browser straight to `{EMAP_APP_URL}/upload-document/{uuid}?redirect=1` (using the `uuid` returned by `POST /v1/signup`) — this is EMAP's own existing auto-login + resume route (the same one its admin dashboard's "Resume Merchant Signup" button already links to). See "Flow Option 2 & 3 Backend Endpoints" below. |
-| **3. 6 steps + resume email** | Supported. Wire a "finish later" action that calls `POST /v1/signup/resume-link` with the merchant's `email`. **Only show/enable this on Step 2 onward** — before Step 1 is submitted there's no `uuid`/application saved server-side yet, so the email lookup can't resume anything (it just falls back to a blank `/signup?email=...` restart). See "Flow Option 2 & 3 Backend Endpoints" below. |
+| **1. All in one place** | Proceed exactly as documented in the rest of this file — no changes needed. This is fully supported today. Internally this is the regular flow: all 6 steps, completed on this form. |
+| **2. Quick start, then handed off** | Supported, no new backend endpoint needed. Internally this means: only scaffold Step 1's page/form — **do not build Steps 2–6 at all.** The merchant leaves this site the moment Step 1 succeeds, so any Step 2–6 UI would be dead code, never reached. **Also strip every "N of 6" / multi-step signal from the one page you do build** — no 6-dot progress bar, no "Step 1 of 6" subtitle, no step counter of any kind. There is exactly one step on this site; showing "1 of 6" falsely promises the merchant 5 more steps here before they get redirected away entirely. If you want a progress affordance at all, it must not imply steps beyond this one (e.g. a plain "Create your account" heading with no counter). After a successful Step 1 submission, redirect the browser straight to `{EMAP_APP_URL}/upload-document/{uuid}?redirect=1` (using the `uuid` returned by `POST /v1/signup`) — this is EMAP's own existing auto-login + resume route (the same one its admin dashboard's "Resume Merchant Signup" button already links to). See "Flow Option 2 & 3 Backend Endpoints" below. |
+| **3. All in one place, with "save and finish later"** | Supported. Internally this means: all 6 steps, same as option 1, plus wire a "finish later" action that calls `POST /v1/signup/resume-link` with the merchant's `email`. **Only show/enable this on Step 2 onward** — before Step 1 is submitted there's no `uuid`/application saved server-side yet, so the email lookup can't resume anything (it just falls back to a blank `/signup?email=...` restart). See "Flow Option 2 & 3 Backend Endpoints" below. |
 
 ### Flow Option 2 & 3 Backend Endpoints
 
