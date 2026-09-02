@@ -11,7 +11,7 @@ These endpoints must be deployed to your target EMAP environment before Options 
 
 ## 1. Flow Option 2 (Step 1 only, redirect to EMAP)
 
-Reuses an existing EMAP route — no new backend endpoint needed. After Step 1 succeeds (`POST /v1/signup` returns `uuid`), redirect the browser to:
+Reuses an existing EMAP route — no new backend endpoint needed. After Step 1 succeeds (`POST /api/v1/signup` returns `uuid`), redirect the browser to:
 
 ```
 GET {EMAP_APP_URL}/upload-document/{uuid}?redirect=1
@@ -23,9 +23,11 @@ Unauthenticated — logs the merchant in by `uuid` alone and routes them to wher
 
 ---
 
-## 2. Flow Option 3 (resume email) — `POST /v1/signup/resume-link`
+## 2. Flow Option 3 (resume email) — `POST /api/v1/signup/resume-link`
 
 Unauthenticated. Callable from Step 2 onward of the partner-hosted form (e.g. a "Finish later" button) — not on Step 1, since no `uuid`/application exists yet to resume into.
+
+**The `/api` prefix is not optional.** EMAP's CORS config only allows cross-origin requests under `api/*` — this route (and every other `/v1/*` route in this skill) only exists on the server as `/api/v1/...`. Call the bare `/v1/...` path from a partner-hosted form and the request isn't covered by CORS at all: the OPTIONS preflight falls through to the app's default routing instead of getting proper `Access-Control-Allow-*` headers, and the browser reports it as a network error with no real response. If a "finish later" call ever starts failing this way, check the URL for a missing `/api` first.
 
 **Request**:
 ```json
@@ -47,4 +49,4 @@ Unauthenticated. Callable from Step 2 onward of the partner-hosted form (e.g. a 
 | Flow | Endpoint |
 |---|---|
 | Option 2 (redirect after Step 1) | See "Flow Option 2" above — requires `"step_count": 1` in the Step 1 payload |
-| Option 3 (resume email) | `POST /v1/signup/resume-link` — only enable from Step 2 onward |
+| Option 3 (resume email) | `POST /api/v1/signup/resume-link` — only enable from Step 2 onward |
