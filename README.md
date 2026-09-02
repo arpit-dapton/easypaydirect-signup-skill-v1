@@ -1,6 +1,6 @@
 # EMAP Signup Skills
 
-A production-ready Claude Code skill for generating EMAP's 6-step merchant signup form: not a toy prompt, a full specification an agent can build against.
+A production-ready agent skill for generating EMAP's 6-step merchant signup form: not a toy prompt, a full specification an agent can build against.
 
 Most "build me a signup form" prompts produce something that looks right and breaks on the first edge case: a conditional field that should only show up for Canadian owners, a re-submission that silently duplicates a record, an error response the agent never accounted for. This skill exists because that gap is exactly where merchant-onboarding forms go wrong.
 
@@ -16,7 +16,7 @@ Instead of describing the form once and hoping the agent infers the rest, this r
 npx skills add arpit-dapton/emap-signup-skills
 ```
 
-This is the [open agent skills CLI](https://skills.sh): it detects which coding agents you have installed (Claude Code, Cursor, Codex, and 70+ others), lets you pick which to install to, and symlinks or copies `skills/signup/` into the right place for each (e.g. `.claude/skills/signup/` for Claude Code). Use `--list` first to preview what it finds without installing anything:
+This is the [open agent skills CLI](https://skills.sh): it detects which coding agents you have installed (Cursor, Codex, Junie, and 70+ others), lets you pick which to install to, and symlinks or copies `skills/signup/` into the right place for each. Use `--list` first to preview what it finds without installing anything:
 
 ```bash
 npx skills add arpit-dapton/emap-signup-skills --list
@@ -26,21 +26,21 @@ npx skills add arpit-dapton/emap-signup-skills --list
 
 ```bash
 git clone https://github.com/arpit-dapton/emap-signup-skills.git emap-signup-skills
-cp -r emap-signup-skills/skills/signup .claude/skills/signup
+cp -r emap-signup-skills/skills/signup <your-agent's-skills-dir>/signup
 ```
 
-(Any path works. `.claude/skills/` is just where Claude Code looks for skills automatically. If you're using a different agent, any folder it can read works too.)
+(Where that is depends on your agent: see the CLI's [Supported Agents](https://github.com/vercel-labs/skills#supported-agents) table for the exact path. Any folder your agent can read works, even outside that convention.)
 
 **2. Point your agent at it**
 
 ```
 Generate the signup form using this specification:
-.claude/skills/signup/SKILL.md
+path/to/signup/SKILL.md
 ```
 
 `SKILL.md` is the single entry point. It links out to every step file and reference doc it needs, so the agent never has to guess where the rest of the spec lives.
 
-**3. Answer the two gate questions**
+## Answer the Gate Questions
 
 Before it writes any code, the skill stops and asks:
 
@@ -52,32 +52,6 @@ Before it writes any code, the skill stops and asks:
    3. **All in one place, with a "save and finish later" option**: same as option 1 (the whole application happens on your website), but if a merchant gets interrupted partway through, they can request an email with a link that lets them pick up right where they left off. *(Internally: all 6 steps, same as option 1, plus a "finish later" action that emails a resume link, available from Step 2 onward, once there's an application to resume.)*
 
 These aren't optional: they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact, and the flow choice determines which pages get built at all), so the skill is written to refuse to proceed until a human actually answers. See the gate question and its full implementation table in [`skills/signup/SKILL.md`](skills/signup/SKILL.md).
-
-## Why This Skill Exists
-
-### #1: The agent guesses instead of asking
-
-**The problem.** Signup forms have decisions only a human can make (do you have a partner key, which of three supported flows do you want), and a "just build something reasonable" agent will pick one silently instead of asking.
-
-**The fix.** `SKILL.md` opens with two hard gates (see Installation above) that override any auto-mode/no-clarifying-questions instinct the agent might have. It waits for a real answer before scaffolding anything.
-
-### #2: The spec drifts from what the backend actually does
-
-**The problem.** Most form specs are written from memory or from a design doc, not from the code that will actually receive the request, so they miss things like "every success response is HTTP 200, never 201" or "this endpoint is 500 on error while every other one is 400 for the same case."
-
-**The fix.** Every status code, error shape, and backend endpoint in this skill (see the [Error Handling](skills/signup/SKILL.md#error-handling) table and [`reference/BACKEND_DEPENDENCIES.md`](skills/signup/reference/BACKEND_DEPENDENCIES.md)) is checked against the actual controller code it describes, not inferred from convention. Where something is unverified, the doc says so instead of quietly asserting it.
-
-### #3: Conditional logic lives far from the field it affects
-
-**The problem.** A dependent-field reference file that lives apart from the step it belongs to means an agent building Step 4 has to hold Step 4's fields *and* a separate conditionals doc in its head at once: the classic recipe for "changed the field, forgot the condition."
-
-**The fix.** Conditional/dependent-field logic is written inline in each step's own file, right next to the field it controls (Step 2 is the one exception, split into a companion `_CONDITIONALS.md` because its nesting runs three levels deep). One file, one source of truth, per step.
-
-### #4: Nobody checks the seams between steps
-
-**The problem.** Each step's fields can be correct in isolation while the flow still breaks: a stale `uuid` after refresh, a duplicate submission on back-navigation, a persisted `country` value that Steps 2–5 quietly assume is still there.
-
-**The fix.** `SKILL.md`'s [Testing Checklist](skills/signup/SKILL.md#testing-checklist) calls out exactly these cross-step seams: refresh behavior, re-submission, and the specific conditional combinations that are easy to get right per-field and wrong end-to-end.
 
 ## Reference
 
