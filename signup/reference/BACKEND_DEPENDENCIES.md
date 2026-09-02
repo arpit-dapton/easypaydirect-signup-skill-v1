@@ -46,5 +46,5 @@ Unauthenticated. Callable from Step 2 onward of the partner-hosted form (e.g. a 
 
 | Flow | Endpoint |
 |---|---|
-| Option 2 (redirect after Step 1) | `GET {EMAP_APP_URL}/upload-document/{uuid}?redirect=1` — requires `"step_count": 1` in the Step 1 payload |
+| Option 2 (redirect after Step 1) | See "Flow Option 2" above — requires `"step_count": 1` in the Step 1 payload |
 | Option 3 (resume email) | `POST /v1/signup/resume-link` — only enable from Step 2 onward |
