@@ -24,6 +24,7 @@ First step of the 6-step signup form. Collects basic merchant contact and compan
 | annual_sales | number | Yes | Numeric only, no currency symbols or commas |
 | promo_code | text | No | Optional referral code |
 | partner_key | text | No | Optional partner API key for attribution — see skill.md → "MANDATORY FIRST STEP" (top of file). Ask the implementer if they have one before including it; omit entirely if not |
+| step_count | — | **Yes** | Not a form field — always send the literal value `1` in the payload (not user-editable). Without it, the backend never records the application as having reached step 1, which breaks any later resume/redirect back into EMAP (it lands on Step 1 again instead of Step 2, even though Step 1 data is already saved). |
 
 ---
 

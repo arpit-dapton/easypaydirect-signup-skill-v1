@@ -115,7 +115,8 @@ async function submitStep1(formData) {
       website: formData.website,
       country: formData.country,
       annual_sales: parseInt(formData.annualSales),
-      business_state: formData.businessState || null
+      business_state: formData.businessState || null,
+      step_count: 1
     };
 
     // OPTIONAL: only include partner_key if the implementer has a partner API key
@@ -215,6 +216,7 @@ curl -X POST "https://emap.epd.dev/api/v1/signup" \
     "country": "US",
     "annual_sales": 500000,
     "business_state": "CA",
+    "step_count": 1,
     "partner_key": "OPTIONAL — only if the implementer has one, omit otherwise"
   }'
 
