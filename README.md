@@ -45,9 +45,13 @@ Generate the signup form using this specification:
 Before it writes any code, the skill stops and asks:
 
 1. *Do you have a partner API key?* — determines whether `partner_key` gets sent in the Step 1 payload.
-2. *Which signup flow do you want?* — the regular 6-step flow, a Step-1-only flow that redirects to EMAP to finish, or the 6-step flow plus a "finish later" email link.
+2. *How do you want the sign-up process to work for merchants on your site?* — asked in plain language, no internal jargon, with exactly three options:
 
-These aren't optional — they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact), so the skill is written to refuse to proceed until a human actually answers.
+   1. **All in one place** — the merchant fills out their entire application on your website, from start to finish. They never have to leave your site. *(Internally: the regular flow — all 6 steps, completed on this form.)*
+   2. **Quick start, then handed off** — the merchant only enters their basic contact info on your website. As soon as they submit that, they're automatically taken to EMAP's own website to finish the rest of their application there. *(Internally: only Step 1 gets built on your site — Steps 2–6 are skipped entirely, and the redirect lands on EMAP's existing resume page.)*
+   3. **All in one place, with a "save and finish later" option** — same as option 1 (the whole application happens on your website), but if a merchant gets interrupted partway through, they can request an email with a link that lets them pick up right where they left off. *(Internally: all 6 steps, same as option 1, plus a "finish later" action that emails a resume link — available from Step 2 onward, once there's an application to resume.)*
+
+These aren't optional — they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact, and the flow choice determines which pages get built at all), so the skill is written to refuse to proceed until a human actually answers. See the gate question and its full implementation table in [`skills/signup/SKILL.md`](skills/signup/SKILL.md).
 
 ## Why This Skill Exists
 
