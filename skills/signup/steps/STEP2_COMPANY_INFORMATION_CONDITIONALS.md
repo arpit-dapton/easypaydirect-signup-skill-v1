@@ -84,9 +84,26 @@ The `federal_tax_id` input (`id="txn_id"`, `name="federal_tax_id"`) is a **forma
 ⚠️ **Do not gate this on `country === 'US'`.** An earlier version of this doc required `federal_tax_id` only for `country="US"`, which under-required it for every other non-Canada country (e.g. UK, Australia). The backend's actual rule is "required unless Canada or Sole-Proprietorship" — mirror that exactly.
 
 **Validation** (`jquery-validate` custom method):
-- Minimum **9 digits** for US/Canada/PR.
-- Minimum **11 digits** when also Sole Proprietorship (`business_organized = "Sole-Proprietorship"`).
+- Applies only while the field is enabled/required — i.e. every country except Canada and every `business_organized` except Sole-Proprietorship (see **Enable / disable / required rules** above). Canada and Sole Proprietorship disable and clear the field, so no digit-count check ever runs against it there.
+- Minimum **9 digits** (raw digits, ignoring the mask's dashes) — both mask formats above (`123-45-6789` and `12-3456789`) total exactly 9 digits, so this check really just confirms the mask is fully filled in.
 - Message: *"Please enter at least 9 digits"*.
+
+> ⚠️ An earlier version of this doc also required **11 digits when `business_organized = "Sole-Proprietorship"`**. That clause was stale and contradicted the enable/disable rule above: Sole Proprietorship disables and clears `federal_tax_id` entirely, so a minimum-digit check on it could never fire. Don't reintroduce it.
+
+**Implementation** (add alongside the existing `jquery-validate` plugin init):
+```javascript
+$.validator.addMethod('minTaxIdDigits', function(value, element) {
+    if ($(element).prop('disabled')) return true; // Canada / Sole-Proprietorship — not required, skip
+    const digitCount = value.replace(/\D/g, '').length;
+    return digitCount >= 9;
+}, 'Please enter at least 9 digits');
+
+$('#step2Form').validate({
+    rules: {
+        federal_tax_id: { minTaxIdDigits: true }
+    }
+});
+```
 
 **Reference implementation** (uses country/business_organized **slug** values — not numeric ids):
 ```javascript
