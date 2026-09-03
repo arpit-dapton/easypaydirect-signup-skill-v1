@@ -19,6 +19,8 @@ Continuation of [STEP2_COMPANY_INFORMATION.md](STEP2_COMPANY_INFORMATION.md) (fi
 
 > ℹ️ **`country` is selected in Step 1**, not here. The conditionals below read that persisted Step 1 value (server-side it is available as `$company->country`; client-side, load it into the page and compare). `country` and `business_state` themselves are **not** rendered on Step 2.
 
+> ⚠️ **Re-run these two country-based checks when Step 2 is entered, not once at page load.** The persisted country value they read only exists after Step 1's submission succeeds, so if this logic lives in a one-time page-load initializer, `business_register_number` can end up hidden/empty for a non-US merchant (stale or absent country value at the time it ran) while the submit payload — reading the country fresh at submit time — still tries to send it, causing a 422 `business_register_number is required for non-US companies` on a field the merchant was never shown. See [STEP2_COMPANY_INFORMATION.md § Fields](STEP2_COMPANY_INFORMATION.md#fields) for the full failure mode.
+
 **business_register_number Field** (Show ONLY if country≠"US"):
 - **Conditional Logic**:
   ```javascript
