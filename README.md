@@ -1,6 +1,6 @@
 # EMAP Signup Skills
 
-An agent skill and spec for generating the EMAP signup form.
+A ready-to-use AI agent skill for building the EMAP merchant signup form.
 
 ## Installation
 
