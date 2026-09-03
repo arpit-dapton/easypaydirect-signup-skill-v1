@@ -12,6 +12,17 @@ API-backed dropdown values used throughout the signup form. See [DROPDOWNS_STATI
 
 ## API-Based Dropdowns
 
+⚠️ **The field to use as each `<option>`'s value is NOT the same across these endpoints — check this table before writing any shared dropdown-loading helper.** Countries and States return a `code` field. Industry Types, Referral Sources, Shopping Carts, and Interest Details return **only `slug`** — they have no `code` or `id` field at all. A helper that defaults to `item.code`, falling back to `item.id`, will silently render `value="undefined"` for every option in those four dropdowns. The label (from `item.name`) still displays correctly, so this looks completely fine on screen — the option reads "Retail," the user picks "Retail" — and only surfaces once the form is submitted and the backend rejects the literal string `"undefined"` as an invalid selection. See [DROPDOWNS_STATIC_REFERENCE.md § Pulling from API](DROPDOWNS_STATIC_REFERENCE.md#pulling-from-api) for a loader that takes the value field explicitly per call instead of guessing.
+
+| Endpoint | Value field | Steps that use it |
+|---|---|---|
+| `/api/partner/countries` | `code` | 1, 2, 4, 5 |
+| `/api/partner/states` | `code` | 1, 5 |
+| `/api/partner/industry-types` | `slug` | 2 |
+| `/api/partner/referral-sources` | `slug` | 6 |
+| `/api/partner/shopping-carts` | `slug` | 3 |
+| `/api/partner/interest-details` | `slug` | 6 |
+
 ### Countries (Step 1, Step 2, Step 4, Step 5)
 **Endpoint**: `GET /api/partner/countries`
 

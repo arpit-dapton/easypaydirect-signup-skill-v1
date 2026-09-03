@@ -411,6 +411,8 @@ Fields that depend on the persisted Step 1 country:
 
 **Per-step**: dropdown data loads, required-field validation fires, conditional fields toggle correctly, submission succeeds and returns a `uuid`.
 
+⚠️ **"Dropdown data loads" means checking the actual `value` of a populated `<option>`, not just that labels appear.** `industry_type`, `referral_source`, `shopping_cart`, and `interest_details` are populated from a `slug` field, not `code`/`id` — a shared loader that assumes one field name across all API-backed dropdowns can render every option with `value="undefined"` while every label still looks correct, since labels come from `item.name`. This passes any check that only looks at the screen and only fails once the backend rejects the submitted value. See [reference/DROPDOWNS_REFERENCE.md § API-Based Dropdowns](reference/DROPDOWNS_REFERENCE.md#api-based-dropdowns) for the value field per endpoint.
+
 **Must pass before considering the form done**:
 - [ ] Step 1 → Step 6 completes end-to-end with a single persisted `uuid`
 - [ ] Physical address fields (Step 2) only required when `is_physical_address_same_as_legal_address=0`

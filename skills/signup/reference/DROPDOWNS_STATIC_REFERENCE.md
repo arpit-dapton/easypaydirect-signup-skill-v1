@@ -311,21 +311,31 @@ $('#signupForm').on('submit', function(e) {
 
 ### Pulling from API
 
-All dropdown data should be fetched on form initialization:
+All dropdown data should be fetched on form initialization.
+
+⚠️ **Do not write one shared loader that guesses the value field** (e.g. `item.code || item.id`) and reuse it for every API-backed dropdown. The endpoints don't all use the same field name — see the table in [DROPDOWNS_REFERENCE.md § API-Based Dropdowns](DROPDOWNS_REFERENCE.md#api-based-dropdowns). Countries and States use `code`; Industry Types, Referral Sources, Shopping Carts, and Interest Details use `slug` and have **no** `code` or `id` at all. A silent fallback chain renders `value="undefined"` for those four dropdowns — the label (from `item.name`) still displays correctly, so it looks fine on screen and only fails once the backend rejects the submitted `"undefined"` value with a 422.
+
+Pass the value field explicitly at each call site — never default or fall back to a different one — and fail loudly if an item is missing it, rather than silently rendering `value="undefined"`:
 
 ```javascript
-async function loadDropdownData() {
-    const countries = await fetch('/api/partner/countries').then(r => r.json());
-
-    // Populate select
-    const select = document.querySelector('select[name="country"]');
-    countries.data.forEach(country => {
+async function loadDropdown(endpoint, selectEl, valueKey) {
+    const res = await fetch(endpoint).then(r => r.json());
+    res.data.forEach(item => {
+        const value = item[valueKey];
+        if (value === undefined) {
+            console.error(`${endpoint}: item has no "${valueKey}" field`, item);
+            return; // skip rather than render value="undefined"
+        }
         const option = document.createElement('option');
-        option.value = country.code;  // ← Use CODE/slug (US, CA, MX), NOT id!
-        option.textContent = country.name;
-        select.appendChild(option);
+        option.value = value;
+        option.textContent = item.name;
+        selectEl.appendChild(option);
     });
 }
+
+// Countries/States use 'code'. Industry Types/Referral Sources/Shopping Carts/Interest Details use 'slug'.
+loadDropdown('/api/partner/countries', document.querySelector('select[name="country"]'), 'code');
+loadDropdown('/api/partner/industry-types', document.querySelector('select[name="industry_type"]'), 'slug');
 ```
 
 ### Conditional Display Logic
@@ -385,20 +395,22 @@ function prepareFormData(formData) {
 
 ### Verify All Dropdowns Are Loading
 
+⚠️ **A dropdown "having options" with correct-looking labels is not enough** — inspect the actual `value` attribute of a populated `<option>` (devtools Elements panel, or log `selectEl.options[1].value`) for every API-backed dropdown, not just that labels are present. Labels come from `item.name` and will look right even when the value is the literal string `"undefined"` — see the warning in [§ Pulling from API](#pulling-from-api). This is required at least once for the four `slug`-only endpoints (Industry Types, Referral Sources, Shopping Carts, Interest Details), since those are the ones a `code`/`id`-defaulting loader gets wrong.
+
 ```
 Step 1:
   [ ] Country dropdown has 150+ countries (using code/slug values: US, CA, etc.)
   [ ] State dropdown shows only when country="US"
 
 Step 2:
-  [ ] Industry Type has options
+  [ ] Industry Type has options AND a populated option's value is its slug (e.g. "retail"), not "undefined"
 
 Step 3:
-  [ ] Shopping Cart has 10+ options (including "Other")
+  [ ] Shopping Cart has 10+ options (including "Other") AND a populated option's value is its slug, not "undefined"
 
 Step 6:
-  [ ] How did you hear has options
-  [ ] Interest Areas has options
+  [ ] How did you hear has options AND a populated option's value is its slug, not "undefined"
+  [ ] Interest Areas has options AND a populated option's value is its slug, not "undefined"
 ```
 
 ### Verify Conditional Logic
