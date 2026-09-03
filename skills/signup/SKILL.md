@@ -407,6 +407,8 @@ Fields that depend on the persisted Step 1 country:
 
 ## Testing Checklist
 
+⚠️ **Never submit real requests to `base_url` to verify your work.** Every item below must be confirmed by reading the code, inspecting the request in browser devtools before sending, or intercepting/mocking the `fetch` calls — not by actually clicking through the live form and letting Steps 1-6 (or resume-link) hit the real API. `base_url` points at EMAP's real signup backend (production or staging), and every successful Step 1 submission creates a real, persisted merchant application record there. There is no sandbox/test mode for these endpoints, so "just submit it once to check it works" leaves behind a real test deal that someone else has to notice and clean up. If you genuinely need a live end-to-end submission (e.g. to confirm a payload shape against the real backend), ask the person you're building this for first and wait for them to explicitly confirm it's fine to create a real record — don't decide this on their behalf.
+
 **Per-step**: dropdown data loads, required-field validation fires, conditional fields toggle correctly, submission succeeds and returns a `uuid`.
 
 **Must pass before considering the form done**:
