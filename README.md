@@ -1,6 +1,6 @@
 # EMAP Signup Skills
 
-EMAP signup: a reusable skill and specification for AI code generation.
+An agent skill and spec for generating the EMAP signup form.
 
 ## Installation
 
