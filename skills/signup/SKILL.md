@@ -244,6 +244,8 @@ Use `fetchWithRetry(url, options)` in place of the raw `fetch(url, options).then
 - If the user refreshes the page mid-flow, the form must resume on the same step they were on — it should **not** reset back to Step 1.
 - Persist the current step number and `uuid` so they can be restored after a refresh, using whichever state mechanism fits the implementation (e.g., URL, storage, session).
 
+⚠️ **A completed signup is a distinct persisted state — not just "step 6."** Step 6's success handler (see [steps/STEP6_FINAL_DETAILS.md § Form Submission & Final Redirect](steps/STEP6_FINAL_DETAILS.md#form-submission--final-redirect)) must persist an explicit completed flag (e.g. `localStorage.setItem('signup_completed', 'true')`) *before* showing the success view — do not rely on the step number alone (e.g. `signup_step = 6`) to mean "done," since that value is indistinguishable from "currently filling out Step 6." On page load/refresh, check this completed flag **first**, before the normal step-restore logic runs: if it's set, render the success view directly; only fall through to "resume at the persisted step number" when it isn't. Skipping this check is what makes a refresh after a real, successful completion land back on Step 6's form instead of the success view.
+
 ### Re-submission Behavior (Back Navigation)
 
 **All 6 steps accept re-submission.** If a user navigates back to a step they already completed and submits it again, the same API endpoint is called with the same `uuid` — the backend upserts (updates) the existing record rather than creating a duplicate.
@@ -423,5 +425,7 @@ Fields that depend on the persisted Step 1 country:
 - [ ] Owner 1 `first_name[1]`/`last_name[1]`/`email[1]` are omitted from submission when `primary_contact=1` (see [steps/STEP4_OWNER_INFORMATION.md](steps/STEP4_OWNER_INFORMATION.md))
 - [ ] Owner `license` (Step 4) is always required, all countries; `driver_license_state`/`driver_license_expiration_date` required only when owner `country="US"`, hidden otherwise
 - [ ] Page refresh resumes on the current step (not reset to Step 1)
+- [ ] Page refresh **after** completing Step 6 shows the success view, not Step 6's form again
+- [ ] The success view has a "Sign up again" action that clears all persisted signup state and returns to a blank Step 1
 - [ ] 422 responses display field errors without changing step/URL
 - [ ] All 6 steps and all dropdown endpoints work with no auth header sent at all (only Step 1 optionally accepts one for partner attribution)

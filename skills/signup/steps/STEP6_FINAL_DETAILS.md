@@ -253,10 +253,38 @@ const selectedInterests = $('input[name="other_interests_capital"]:checked')
   "step_count": 6,
   "redirect": "/signup/success"
 }
+```
 
-// Redirect to success page
-const redirectUrl = response.redirect || '/signup/success';
-window.location.href = redirectUrl;
+⚠️ **Do not `window.location.href` to `response.redirect` as a literal page navigation.** The rest of this skill is built as a single continuous session — Steps 1–6 persist their current step number and resume in place on refresh (see [skill.md § Page Refresh Behavior](../SKILL.md#page-refresh-behavior)) rather than navigating between separate URLs. Treating Step 6's success the same way (a real cross-page redirect) breaks that model: there's no `/signup/success` page in a single-page build for the browser to land on, and refreshing afterward has nothing to resume into except Step 6's own form again — which is exactly what makes a refresh after a real completion incorrectly show Step 6 instead of the success message.
+
+Instead, show the success view **in place**, the same way `goToStep()` transitions between steps elsewhere in this skill — and mark the signup as completed in persisted state *before* rendering it, so a refresh recognizes completion first (see the ⚠️ in [skill.md § Page Refresh Behavior](../SKILL.md#page-refresh-behavior)):
+
+```javascript
+success: function(response) {
+    if (response.status) {
+        localStorage.setItem('signup_completed', 'true'); // set BEFORE rendering the success view
+        showSuccessView();
+    }
+}
+
+function showSuccessView() {
+    // Hide the step form / progress UI, show the success view (same in-page
+    // transition mechanism as goToStep() elsewhere in this skill).
+    $('.signup-step, .signup-progress').hide();
+    $('#successView').show();
+}
+```
+
+**Success view content**:
+- Confirmation message, e.g. *"You're all set! Your merchant application has been submitted successfully. Our team will be in touch shortly."*
+- A **"Sign up again"** link/button that starts a brand-new signup: clear every persisted key this skill writes (`signup_uuid`, `signup_step`, `signup_completed`, `signup_country`, and every `signup_step_N_data`), then reload/reset to a blank Step 1. Without this, a merchant (or a second merchant sharing the device) has no way back into the form except manually clearing storage.
+
+```javascript
+$('#signupAgainBtn').on('click', function() {
+    ['signup_uuid', 'signup_step', 'signup_completed', 'signup_country'].forEach(k => localStorage.removeItem(k));
+    for (let i = 1; i <= 6; i++) localStorage.removeItem(`signup_step_${i}_data`);
+    window.location.reload(); // or reset in-page state back to Step 1 without a reload
+});
 ```
 
 **On Validation Error (HTTP 422)**: standard shape — see skill.md → Error Handling. Stay on Step 6, display field errors, do not change URL.
