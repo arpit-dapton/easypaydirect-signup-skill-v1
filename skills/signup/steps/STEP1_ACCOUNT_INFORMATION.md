@@ -163,7 +163,8 @@ On Step 1 page/component load, check whether a `uuid` already exists in the pers
 
 - Every `<input>`, `<select>`, and `<textarea>` inside the Step 1 form
 - The submit button
-- The `intl-tel-input` phone widget (call `iti.setDisabled(true)` on the instance)
+
+⚠️ **Do not call `iti.setDisabled(true)`.** `intl-tel-input` has no `setDisabled` method in any version through at least `22.0.2` (the version pinned above) — it is not part of the library's public API. Calling it throws `TypeError: iti.setDisabled is not a function`. Because this is easy to trigger inside a `.then()` success handler right after a real, successful Step 1 submission, the thrown error commonly gets caught by an unrelated outer `.catch()` meant for genuine network failures and misreported to the user as a network error — even though Step 1 actually succeeded and a `uuid` was returned. The phone `<input>` that `intl-tel-input` wraps is disabled automatically by the plain `.prop('disabled', true)` / `disabled = true` call on "every `<input>`... inside the Step 1 form" above — no separate widget-specific call is needed or exists.
 
 ### Implementation
 
@@ -187,14 +188,14 @@ $(document).ready(function() {
             iti.setNumber(saved.phone);
         }
 
-        // 4. Lock the entire form — fields are now readable but not editable
+        // 4. Lock the entire form — fields are now readable but not editable.
+        //    This also disables the plain <input> that intl-tel-input wraps —
+        //    do NOT also call iti.setDisabled(true); that method does not
+        //    exist on this library and throws if called (see "What to
+        //    disable" above).
         $('#step1Form input, #step1Form select, #step1Form textarea')
             .prop('disabled', true);
         $('#step1Form button[type="submit"]').prop('disabled', true);
-
-        if (typeof iti !== 'undefined') {
-            iti.setDisabled(true);
-        }
 
         // Optional: show a read-only notice to the user
         // e.g. $('#step1Notice').text('This step has already been submitted.').show();
