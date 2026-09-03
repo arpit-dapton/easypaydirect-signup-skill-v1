@@ -1,10 +1,6 @@
 # EMAP Signup Skills
 
-A production-ready agent skill for generating EMAP's 6-step merchant signup form: not a toy prompt, a full specification an agent can build against.
-
-Most "build me a signup form" prompts produce something that looks right and breaks on the first edge case: a conditional field that should only show up for Canadian owners, a re-submission that silently duplicates a record, an error response the agent never accounted for. This skill exists because that gap is exactly where merchant-onboarding forms go wrong.
-
-Instead of describing the form once and hoping the agent infers the rest, this repo documents the form the way you'd hand it to a new engineer: every field, every conditional, every API response shape, verified against the actual backend rather than assumed. Hack on it, trim it, or fork it for your own multi-step form. It's built to be read and edited, not just executed.
+EMAP signup: a reusable skill and specification for AI code generation.
 
 ## Installation
 
@@ -53,33 +49,6 @@ Before it writes any code, the skill stops and asks:
 
 These aren't optional: they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact, and the flow choice determines which pages get built at all), so the skill is written to refuse to proceed until a human actually answers. See the gate question and its full implementation table in [`skills/signup/SKILL.md`](skills/signup/SKILL.md).
 
-## Reference
-
-### The skill
-
-- **[`skills/signup/SKILL.md`](skills/signup/SKILL.md)**: Navigation hub. Form overview, the two mandatory gate questions, auth, error handling, cross-step guidance (step progression, refresh behavior, re-submission, form-data persistence), and the testing checklist. Everything else is linked directly from here.
-
-### Steps
-
-One file per step; conditional logic lives inline in each rather than in a separate reference.
-
-| Step | File | Fields | Covers |
-|------|------|--------|--------|
-| 1 | [`STEP1_ACCOUNT_INFORMATION.md`](skills/signup/steps/STEP1_ACCOUNT_INFORMATION.md) | 11 | Contact + company basics, phone formatting, optional partner attribution |
-| 2 | [`STEP2_COMPANY_INFORMATION.md`](skills/signup/steps/STEP2_COMPANY_INFORMATION.md) / [`_CONDITIONALS.md`](skills/signup/steps/STEP2_COMPANY_INFORMATION_CONDITIONALS.md) | 26 | Legal + physical address, revenue model with nested conditionals |
-| 3 | [`STEP3_PRODUCT_INFORMATION.md`](skills/signup/steps/STEP3_PRODUCT_INFORMATION.md) | 13 | Fulfillment details, transaction-split slider (multiples of 5, sums to 100) |
-| 4 | [`STEP4_OWNER_INFORMATION.md`](skills/signup/steps/STEP4_OWNER_INFORMATION.md) / [`_FIELDS.md`](skills/signup/steps/STEP4_OWNER_INFORMATION_FIELDS.md) / [`_IMPLEMENTATION.md`](skills/signup/steps/STEP4_OWNER_INFORMATION_IMPLEMENTATION.md) | 45+ | Primary contact, Owner 1 & conditional Owner 2, driver's license, financial history |
-| 5 | [`STEP5_BANKING_INFORMATION.md`](skills/signup/steps/STEP5_BANKING_INFORMATION.md) | 9 | Routing validation, country-specific fields |
-| 6 | [`STEP6_FINAL_DETAILS.md`](skills/signup/steps/STEP6_FINAL_DETAILS.md) | 11 | Interest selection, terms & conditions acceptance |
-
-### Supporting reference
-
-- **[`reference/api-examples.md`](skills/signup/reference/api-examples.md)**: Copy-paste JavaScript & cURL for every dropdown and submission endpoint.
-- **[`reference/DROPDOWNS_REFERENCE.md`](skills/signup/reference/DROPDOWNS_REFERENCE.md)**: API-backed dropdown values (countries, states, industry types, referral sources, shopping carts, interests).
-- **[`reference/DROPDOWNS_STATIC_REFERENCE.md`](skills/signup/reference/DROPDOWNS_STATIC_REFERENCE.md)**: Static dropdown values and a plain-dropdown implementation path.
-- **[`reference/BACKEND_DEPENDENCIES.md`](skills/signup/reference/BACKEND_DEPENDENCIES.md)**: What has to actually be deployed server-side before Flow Options 2 and 3 work.
-- **[`reference/TERMS_AND_CONDITIONS_TEXT.md`](skills/signup/reference/TERMS_AND_CONDITIONS_TEXT.md)**: Point-in-time snapshot of the T&C text shown on Step 6.
-
 ## Folder Structure
 
 ```
@@ -102,26 +71,11 @@ emap-signup-skills/
 
 This is the flat layout the `npx skills` CLI expects (`skills/<name>/SKILL.md`), so any skill placed under `skills/` here is installable with `npx skills add` out of the box.
 
-## Adding a New Skill
-
-This repo currently holds one skill, but it's structured so another can sit alongside it:
-
-```
-emap-signup-skills/
-└── skills/
-    └── {skill-name}/
-        ├── SKILL.md ................ Entry point & spec
-        └── reference/
-            └── {topic}.md
-```
-
-Then add it to the Reference section above.
-
 ## Current Skills
 
-| Skill | Status | Entry point |
-|-------|--------|-------------|
-| EMAP Merchant Signup | ✅ Production ready | [`skills/signup/SKILL.md`](skills/signup/SKILL.md) |
+| Skill | Entry point |
+|-------|-------------|
+| EMAP Merchant Signup | [`skills/signup/SKILL.md`](skills/signup/SKILL.md) |
 
 ---
 
