@@ -11,7 +11,7 @@ This skill is for **partners** who want to earn commission by referring merchant
 **What you'll need**
 
 - **A partner API key (optional)**, from the [EasyPayDirect partner portal](https://emap.easypaydirect.com). It's what attributes signups to you for commission.
-- **An AI coding assistant** (Cursor, Claude Code, ChatGPT, etc.). This is what actually builds the page from the skill.
+- **An AI coding assistant** (Cursor, Claude Code, Replit, v0, etc.). This is what actually builds the page from the skill.
 - **Node.js**, only for the `npx` install method below; not needed if you copy the skill manually. Get it at [nodejs.org](https://nodejs.org).
 
 > Not comfortable with a terminal? You can skip the commands entirely. Open your AI assistant, give it the skill (paste the link to `SKILL.md`), and ask it to build the page for you.
