@@ -10,17 +10,17 @@ This skill is for **partners** who want to earn commission by referring merchant
 
 **What you'll need**
 
-- **A partner API key (optional)** — from the [EasyPayDirect partner portal](https://emap.easypaydirect.com). It's what attributes signups to you for commission, but you can start without it and add it later.
-- **An AI coding assistant** (Cursor, Claude Code, ChatGPT, etc.) — this is what actually builds the page from the skill.
-- **Node.js** — only for the `npx` install method below; not needed if you copy the skill manually. Get it at [nodejs.org](https://nodejs.org).
+- **A partner API key (optional)**, from the [EasyPayDirect partner portal](https://emap.easypaydirect.com). It's what attributes signups to you for commission.
+- **An AI coding assistant** (Cursor, Claude Code, ChatGPT, etc.). This is what actually builds the page from the skill.
+- **Node.js**, only for the `npx` install method below; not needed if you copy the skill manually. Get it at [nodejs.org](https://nodejs.org).
 
-> Not comfortable with a terminal? You can skip the commands entirely — open your AI assistant, give it the skill (paste the link to `SKILL.md`), and ask it to build the page for you.
+> Not comfortable with a terminal? You can skip the commands entirely. Open your AI assistant, give it the skill (paste the link to `SKILL.md`), and ask it to build the page for you.
 
 **1. Get the skill**
 
 *Option A: `npx skills` (recommended)*
 
-> **Before you run this, you need Node.js installed** — it's what provides the `npx` command. Download it from [nodejs.org](https://nodejs.org) (pick the "LTS" version and click through the installer), then reopen your terminal. To check it worked, run `node --version`; if it prints a version number you're set. If `npx` still isn't found after installing, close and reopen the terminal.
+> **Before you run this, you need Node.js installed.** It's what provides the `npx` command. Download it from [nodejs.org](https://nodejs.org) (pick the "LTS" version and click through the installer), then reopen your terminal. To check it worked, run `node --version`; if it prints a version number you're set. If `npx` still isn't found after installing, close and reopen the terminal.
 
 ```bash
 npx skills add arpit-dapton/easypaydirect-signup-skill-v1
@@ -46,7 +46,7 @@ Build the signup form using this specification: skills/signup/SKILL.md
 Generate the signup form described in skills/signup/SKILL.md.
 ```
 
-`SKILL.md` is the single entry point — it links out to every other file the agent needs, so that one path is all you have to give it.
+`SKILL.md` is the single entry point. It links out to every other file the agent needs, so that one path is all you have to give it.
 
 ## Answer the Gate Questions
 
