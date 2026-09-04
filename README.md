@@ -56,9 +56,9 @@ Before it writes any code, the skill stops and asks:
 1. *Do you have a partner API key?* Determines whether `partner_key` gets sent in the Step 1 payload.
 2. *How do you want the sign-up process to work for merchants on your site?* Asked in plain language, no internal jargon, with exactly three options:
 
-   1. **All in one place**: the merchant fills out their entire application on your website, from start to finish. They never have to leave your site. *(Internally: the regular flow, all 6 steps, completed on this form.)*
-   2. **Quick start, then handed off**: the merchant only enters their basic contact info on your website. As soon as they submit that, they're automatically taken to EasyPayDirect's own website to finish the rest of their application there. *(Internally: only Step 1 gets built on your site; Steps 2–6 are skipped entirely, and the redirect lands on EasyPayDirect's existing resume page.)*
-   3. **Quick start, then we email you a link**: the merchant enters their basic contact info on your website, and instead of being redirected, they get an email with a link to continue on EasyPayDirect whenever they're ready. *(Internally: Variant 2 — build only Step 1, `POST /api/v1/signup`, then `POST /api/v1/signup/resume-link`, then show a "check your email" confirmation.)*
+   1. **All in one place**: the merchant fills out their entire application on your website, from start to finish. They never have to leave your site.
+   2. **Quick start, then handed off**: the merchant only enters their basic contact info on your website. As soon as they submit that, they're automatically taken to EasyPayDirect's own website to finish the rest of their application there.
+   3. **Quick start, then we email you a link**: the merchant enters their basic contact info on your website, and instead of being redirected, they get an email with a link to continue on EasyPayDirect whenever they're ready.
 
 These aren't optional: they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact, and the flow choice determines which pages get built at all), so the skill is written to refuse to proceed until a human actually answers. See the gate question and its full implementation table in [`skills/signup/SKILL.md`](skills/signup/SKILL.md).
 
