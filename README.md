@@ -32,16 +32,26 @@ npx skills add arpit-dapton/easypaydirect-signup-skill-v1
 2. Click the green **Code** button → **Download ZIP**, then unzip it.
 3. The skill is the `skills/signup` folder inside. Point your agent at it (next step), or drop that folder wherever your agent reads skills from.
 
-Any folder your agent can read works. If you're not sure where that is for your agent, you can just hand it the `SKILL.md` file directly.
-
 **2. Point your agent at it**
 
+Tell your AI assistant to build the form from `SKILL.md`. A few examples:
+
+*Claude:*
 ```
-Generate the signup form using this specification:
-path/to/signup/SKILL.md
+Build the signup form using this specification: skills/signup/SKILL.md
 ```
 
-`SKILL.md` is the single entry point. It links out to every step file and reference doc it needs, so the agent never has to guess where the rest of the spec lives.
+*Codex:*
+```
+Read skills/signup/SKILL.md and build the signup form it specifies.
+```
+
+*Any other agent:*
+```
+Generate the signup form described in skills/signup/SKILL.md.
+```
+
+`SKILL.md` is the single entry point — it links out to every other file the agent needs, so that one path is all you have to give it.
 
 ## Answer the Gate Questions
 
