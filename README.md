@@ -1,17 +1,13 @@
 # EasyPayDirect Signup Skills
 
-A ready-to-use AI agent skill for building the EasyPayDirect merchant signup form.
-
-## Purpose
-
 This skill is for **partners** who want to earn commission by referring merchants to EasyPayDirect. Give it to your AI agent and it builds a branded referral signup page that you can host anywhere (Vercel, Netlify, your own site, etc.). Every merchant who signs up through your page is attributed to you via your partner key, so the signups you drive earn you commission.
 
 ## Installation
 
 **What you'll need**
 
-- **A partner API key (optional)**, from the [EasyPayDirect partner portal](https://emap.easypaydirect.com). It's what attributes signups to you for commission.
-- **An AI coding assistant** (Cursor, Claude Code, Replit, v0, etc.). This is what actually builds the page from the skill.
+- **A partner API key (optional)**, from the [EasyPayDirect partner portal](https://emap.easypaydirect.com/signup/partner). It's what attributes signups to you for commission.
+- **An AI coding assistant** (Cursor, Claude Code, etc.). This is what actually builds the page from the skill. Or app builders like Replit, v0, etc. work too, as long as you can give them the `SKILL.md` contents to build from.
 - **Node.js**, only for the `npx` install method below; not needed if you copy the skill manually. Get it at [nodejs.org](https://nodejs.org).
 
 > Not comfortable with a terminal? You can skip the commands entirely. Open your AI assistant, give it the skill (paste the link to `SKILL.md`), and ask it to build the page for you.
@@ -28,9 +24,8 @@ npx skills add arpit-dapton/easypaydirect-signup-skill-v1
 
 *Option B: download it (no terminal needed)*
 
-1. Open the [GitHub repo](https://github.com/arpit-dapton/easypaydirect-signup-skill-v1).
-2. Click the green **Code** button → **Download ZIP**, then unzip it.
-3. The skill is the `skills/signup` folder inside. Point your agent at it (next step), or drop that folder wherever your agent reads skills from.
+1. On the [GitHub repo](https://github.com/arpit-dapton/easypaydirect-signup-skill-v1), click the green **Code** button → **Download ZIP**, then unzip it.
+2. The skill is the `skills/signup` folder inside. Point your agent at it (next step), or drop that folder wherever your agent reads skills from.
 
 **2. Point your agent at it**
 
