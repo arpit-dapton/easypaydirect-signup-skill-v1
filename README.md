@@ -53,7 +53,7 @@ path/to/signup/SKILL.md
 
 Before it writes any code, the skill stops and asks:
 
-1. *Do you have a partner API key?* Determines whether `partner_key` gets sent in the signup payload (email variant only). You get the key from the [EasyPayDirect partner portal](https://emap.easypaydirect.com) under **Integration → API Integration** — one key per partner account, reused for every signup. Not a partner yet? [Register as a partner](https://emap.easypaydirect.com/signup/partner) first, then grab the key from that same page. (The skill walks you through this step by step and lets you **Skip** if you don't have one yet — signups just won't be attributed to you until you add it.)
+1. *Do you have a partner API key?* Determines whether `partner_key` gets sent in the Step 1 payload.
 2. *How do you want the sign-up process to work for merchants on your site?* Asked in plain language, no internal jargon, with exactly three options:
 
    1. **All in one place**: the merchant fills out their entire application on your website, from start to finish. They never have to leave your site. *(Internally: the regular flow, all 6 steps, completed on this form.)*
