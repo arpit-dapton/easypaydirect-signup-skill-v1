@@ -24,7 +24,7 @@ npx skills add arpit-dapton/easypaydirect-signup-skill-v1
 
 *Option B: download it (no terminal needed)*
 
-1. On the [GitHub repo](https://github.com/arpit-dapton/easypaydirect-signup-skill-v1), click the green **Code** button → **Download ZIP**, then unzip it.
+1. Click the green **Code** button → **Download ZIP**, then unzip it.
 2. The skill is the `skills/signup` folder inside. Point your agent at it (next step), or drop that folder wherever your agent reads skills from.
 
 **2. Point your agent at it**
