@@ -41,11 +41,6 @@ Tell your AI assistant to build the form from `SKILL.md`. A few examples:
 Build the signup form using this specification: skills/signup/SKILL.md
 ```
 
-*Codex:*
-```
-Read skills/signup/SKILL.md and build the signup form it specifies.
-```
-
 *Any other agent:*
 ```
 Generate the signup form described in skills/signup/SKILL.md.
