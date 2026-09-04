@@ -10,7 +10,7 @@ This skill is for **partners** who want to earn commission by referring merchant
 
 **What you'll need**
 
-- **A partner API key (optional)** — from the [EasyPayDirect partner portal](https://emap.easypaydirect.com) (see [Answer the Gate Questions](#answer-the-gate-questions) below). It's what attributes signups to you for commission, but you can start without it and add it later.
+- **A partner API key (optional)** — from the [EasyPayDirect partner portal](https://emap.easypaydirect.com). It's what attributes signups to you for commission, but you can start without it and add it later.
 - **An AI coding assistant** (Cursor, Claude Code, ChatGPT, etc.) — this is what actually builds the page from the skill.
 - **Node.js** — only for the `npx` install method below; not needed if you copy the skill manually. Get it at [nodejs.org](https://nodejs.org).
 
@@ -23,22 +23,16 @@ This skill is for **partners** who want to earn commission by referring merchant
 > **Before you run this, you need Node.js installed** — it's what provides the `npx` command. Download it from [nodejs.org](https://nodejs.org) (pick the "LTS" version and click through the installer), then reopen your terminal. To check it worked, run `node --version`; if it prints a version number you're set. If `npx` still isn't found after installing, close and reopen the terminal.
 
 ```bash
-npx skills add arpit-dapton/easypaydirect-signup-skill
-```
-
-This is the [open agent skills CLI](https://skills.sh): it detects which coding agents you have installed (Cursor, Codex, Junie, and 70+ others), lets you pick which to install to, and symlinks or copies `skills/signup/` into the right place for each. Use `--list` first to preview what it finds without installing anything:
-
-```bash
-npx skills add arpit-dapton/easypaydirect-signup-skill --list
+npx skills add arpit-dapton/easypaydirect-signup-skill-v1
 ```
 
 *Option B: download it (no terminal needed)*
 
-1. Open the [GitHub repo](https://github.com/arpit-dapton/easypaydirect-signup-skill).
+1. Open the [GitHub repo](https://github.com/arpit-dapton/easypaydirect-signup-skill-v1).
 2. Click the green **Code** button → **Download ZIP**, then unzip it.
 3. The skill is the `skills/signup` folder inside. Point your agent at it (next step), or drop that folder wherever your agent reads skills from.
 
-Any folder your agent can read works. If you're not sure where that is for your agent, just use the [Answer the Gate Questions](#answer-the-gate-questions) step below — you can hand the agent the `SKILL.md` file directly.
+Any folder your agent can read works. If you're not sure where that is for your agent, you can just hand it the `SKILL.md` file directly.
 
 **2. Point your agent at it**
 
@@ -60,12 +54,10 @@ Before it writes any code, the skill stops and asks:
    2. **Quick start, then handed off**: the merchant only enters their basic contact info on your website. As soon as they submit that, they're automatically taken to EasyPayDirect's own website to finish the rest of their application there.
    3. **Quick start, then we email you a link**: the merchant enters their basic contact info on your website, and instead of being redirected, they get an email with a link to continue on EasyPayDirect whenever they're ready.
 
-These aren't optional: they're one-way doors (a signup submitted without `partner_key` can never be attributed to a partner after the fact, and the flow choice determines which pages get built at all), so the skill is written to refuse to proceed until a human actually answers. See the gate question and its full implementation table in [`skills/signup/SKILL.md`](skills/signup/SKILL.md).
-
 ## Folder Structure
 
 ```
-easypaydirect-signup-skill/
+easypaydirect-signup-skill-v1/
 ├── README.md ...................................... This file
 │
 └── skills/
