@@ -1,17 +1,17 @@
 ---
 name: signup-backend-dependencies
-description: EMAP (epd-emap) backend endpoints powering Flow Option 2 (redirect) and Option 3 (resume email)
+description: EasyPayDirect (epd-emap) backend endpoints powering Flow Option 2 (redirect) and Option 3 (resume email)
 ---
 
 # Backend Endpoints — Flow Options 2 & 3
 
-These endpoints must be deployed to your target EMAP environment before Options 2 or 3 will work — confirm availability before relying on them.
+These endpoints must be deployed to your target EasyPayDirect environment before Options 2 or 3 will work — confirm availability before relying on them.
 
 ---
 
-## 1. Flow Option 2 (Step 1 only, redirect to EMAP)
+## 1. Flow Option 2 (Step 1 only, redirect to EasyPayDirect)
 
-Reuses an existing EMAP route — no new backend endpoint needed. After Step 1 succeeds (`POST /api/v1/signup` returns `uuid`), redirect the browser to:
+Reuses an existing EasyPayDirect route — no new backend endpoint needed. After Step 1 succeeds (`POST /api/v1/signup` returns `uuid`), redirect the browser to:
 
 ```
 GET {EMAP_APP_URL}/upload-document/{uuid}?redirect=1
@@ -27,7 +27,7 @@ Unauthenticated — logs the merchant in by `uuid` alone and routes them to wher
 
 Unauthenticated. Callable from Step 2 onward of the partner-hosted form (e.g. a "Finish later" button) — not on Step 1, since no `uuid`/application exists yet to resume into.
 
-**The `/api` prefix is not optional.** EMAP's CORS config only allows cross-origin requests under `api/*` — this route (and every other `/v1/*` route in this skill) only exists on the server as `/api/v1/...`. Call the bare `/v1/...` path from a partner-hosted form and the request isn't covered by CORS at all: the OPTIONS preflight falls through to the app's default routing instead of getting proper `Access-Control-Allow-*` headers, and the browser reports it as a network error with no real response. If a "finish later" call ever starts failing this way, check the URL for a missing `/api` first.
+**The `/api` prefix is not optional.** EasyPayDirect's CORS config only allows cross-origin requests under `api/*` — this route (and every other `/v1/*` route in this skill) only exists on the server as `/api/v1/...`. Call the bare `/v1/...` path from a partner-hosted form and the request isn't covered by CORS at all: the OPTIONS preflight falls through to the app's default routing instead of getting proper `Access-Control-Allow-*` headers, and the browser reports it as a network error with no real response. If a "finish later" call ever starts failing this way, check the URL for a missing `/api` first.
 
 ⚠️ Even with the correct `/api` prefix, this call (like every other fetch to a `v1` endpoint) can occasionally fail on the very first attempt due to a transient cross-origin connection hiccup and succeed immediately on a plain retry. Call it through the `fetchWithRetry` helper documented in [skill.md § Network Resilience](../SKILL.md#network-resilience--retry-once-on-transient-fetch-failure) rather than a raw `fetch(...).catch(...)`, so a "finish later" click doesn't need to be clicked twice.
 
